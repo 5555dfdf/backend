@@ -1,0 +1,4 @@
+package org.example.courework3.entity;
+
+public class Admin {
+}
