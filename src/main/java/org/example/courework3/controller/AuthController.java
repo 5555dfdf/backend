@@ -5,16 +5,14 @@ import lombok.extern.slf4j.Slf4j;
 import org.example.courework3.dto.CaptchaRequest;
 import org.example.courework3.dto.LoginRequest;
 import org.example.courework3.dto.RegisterRequest;
+import org.example.courework3.entity.User;
+import org.example.courework3.result.LoginResult;
+import org.example.courework3.result.RegisterResult;
 import org.example.courework3.result.Result;
 import org.example.courework3.service.AliyunMailService;
 import org.example.courework3.service.AuthService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
 
 @RestController
 @RequestMapping("/auth")
@@ -28,28 +26,12 @@ public class AuthController {
     private AliyunMailService mailService;
 
     @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest request) {
-        // 固定账号密码校验
-        if ("123@qq.com".equals(request.getEmail()) && "123".equals(request.getPassword())) {
-            Map<String, Object> map = new HashMap<>();
-            map.put("code", 200);
-            map.put("message", "登录成功");
-            map.put("token", "UUID-TEST-TOKEN-" + UUID.randomUUID());
+    public Result<LoginResult> login(@RequestBody LoginRequest request) {
+       User user = authService.login(request.getEmail(),request.getPassword());
+       LoginResult loginResult = new LoginResult();
+       loginResult.setUser(user);
+       return Result.success(loginResult);
 
-
-            // 模拟用户信息
-            Map<String, Object> user = new HashMap<>();
-            user.put("email", request.getEmail());
-            user.put("name", "测试用户");
-            user.put("role", "Customer");
-            map.put("user", user);
-            log.info("用户登录：{}",map);
-            return ResponseEntity.ok(map);
-
-        } else {
-            System.out.println("2");
-            return ResponseEntity.status(401).body(Map.of("message", "用户名或密码错误"));
-        }
     }
     @PostMapping("/send-email-code")
     public Result<Void> sendCaptcha(@Valid @RequestBody CaptchaRequest request) throws Exception {
@@ -59,16 +41,10 @@ public class AuthController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<?> register(@RequestBody RegisterRequest request) {
-//        authService.register(request.getEmail(), request.getVerificationCode(), request.getPassword());
-        Map<String, Object> user = new HashMap<>();
-        user.put("id",1);
-        user.put("name", request.getName());
-        user.put("email",request.getEmail());
-        user.put("role","Customer");
-        Map<String, Object> map = new HashMap<>();
-        map.put("token", UUID.randomUUID());
-        map.put("user",user);
-        return ResponseEntity.ok(map);
+    public Result<RegisterResult> register(@RequestBody RegisterRequest request) {
+        User user = authService.register(request.getName(),request.getEmail(), request.getVerificationCode(), request.getPassword());
+        RegisterResult registerResult = new RegisterResult();
+        registerResult.setUser(user);
+        return Result.success(registerResult);
     }
 }
