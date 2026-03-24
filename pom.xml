@@ -14,7 +14,7 @@
     <groupId>org.example</groupId>
     <artifactId>coursework3</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>courework3</name>
+    <name>coursework3</name>
     <description>后端注册与验证码功能项目</description>
 
     <properties>
