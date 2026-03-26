@@ -1,6 +1,7 @@
 package org.example.coursework3.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.coursework3.Exception.MsgException;
 import org.example.coursework3.entity.Role;
 import org.example.coursework3.entity.User;
 import org.example.coursework3.repository.UserRepository;
@@ -58,7 +59,7 @@ public class AuthService {
         String userId = redisTemplate.opsForValue().get(key);
 
         if (userId == null) {
-            throw new RuntimeException("token无效或已过期");
+            throw new MsgException("token无效或已过期");
         }
 
         return userId;
@@ -70,17 +71,16 @@ public class AuthService {
     }
 
     public User login(String email, String password) {
-        try {
-            User user = userRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found"));
-            String passwordHash = user.getPasswordHash();
-            if (!passwordHash.equals(password)) {
-                throw new RuntimeException("密码不正确");
-            }
-            return user;
-        } catch (RuntimeException e) {
-            throw new RuntimeException(e);
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new MsgException("用户不存在"));
+
+        String passwordHash = user.getPasswordHash();
+
+        if (!passwordHash.equals(password)) {
+            throw new MsgException("密码不正确");
         }
+
+        return user;
     }
 
 
@@ -90,12 +90,12 @@ public class AuthService {
         try {
             String cachedCode = redisTemplate.opsForValue().get("captcha:" + email);
             if (cachedCode == null || !cachedCode.equals(code)) {
-                throw new RuntimeException("验证码错误或已过期");
+                throw new MsgException("验证码错误或已过期");
             }
 
             // 检查用户是否已存在
             if (userRepository.findByEmail(email).isPresent()) {
-                throw new RuntimeException("该邮箱已被注册");
+                throw new MsgException("该邮箱已被注册");
             }
 
             // 创建新用户

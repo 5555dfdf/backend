@@ -1,6 +1,7 @@
 package org.example.coursework3.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.coursework3.Exception.MsgException;
 import org.example.coursework3.dto.PricingQuoteRequest;
 import org.example.coursework3.entity.Pricing;
 import org.example.coursework3.repository.PricingRepository;
@@ -18,7 +19,7 @@ public class PricingService {
         String type = request.getType();
 
         if (specialistId == null || specialistId.isBlank()) {
-            throw new RuntimeException("specialistId is required");
+            throw new MsgException("specialistId is required");
         }
 
         if (type != null && type.isBlank()) {
@@ -29,19 +30,19 @@ public class PricingService {
         if (duration != null && type != null) {
             pricing = pricingRepository
                     .findBySpecialistIdAndDurationAndType(specialistId, duration, type)
-                    .orElseThrow(() -> new RuntimeException("Pricing not found"));
+                    .orElseThrow(() -> new MsgException("Pricing not found"));
         } else if (duration != null) {
             pricing = pricingRepository
                     .findFirstBySpecialistIdAndDurationOrderByCreatedAtDesc(specialistId, duration)
-                    .orElseThrow(() -> new RuntimeException("Pricing not found"));
+                    .orElseThrow(() -> new MsgException("Pricing not found"));
         } else if (type != null) {
             pricing = pricingRepository
                     .findFirstBySpecialistIdAndTypeOrderByCreatedAtDesc(specialistId, type)
-                    .orElseThrow(() -> new RuntimeException("Pricing not found"));
+                    .orElseThrow(() -> new MsgException("Pricing not found"));
         } else {
             pricing = pricingRepository
                     .findFirstBySpecialistIdOrderByCreatedAtDesc(specialistId)
-                    .orElseThrow(() -> new RuntimeException("Pricing not found"));
+                    .orElseThrow(() -> new MsgException("Pricing not found"));
         }
 
 

@@ -1,6 +1,7 @@
 package org.example.coursework3.service;
 
 import lombok.RequiredArgsConstructor;
+import org.example.coursework3.Exception.MsgException;
 import org.example.coursework3.dto.UpdateSelfInfoRequest;
 import org.example.coursework3.entity.User;
 import org.example.coursework3.repository.UserRepository;
@@ -17,7 +18,7 @@ public class UpdateInfoService {
         try {
             user = userRepository.findById(userId);
         } catch (Exception e) {
-            throw new RuntimeException("用户不存在");
+            throw new MsgException("用户不存在");
         }
 
         if (request.getName() != null) {
