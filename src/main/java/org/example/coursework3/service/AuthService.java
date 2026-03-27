@@ -8,7 +8,6 @@ import org.example.coursework3.repository.UserRepository;
 import org.example.coursework3.result.AuthResult;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
-
 import java.util.concurrent.TimeUnit;
 
 @Service
@@ -81,6 +80,15 @@ public class AuthService {
         }
 
         return user;
+    }
+
+    public User loginByCode(String email, String code){
+        String cachedCode = redisTemplate.opsForValue().get("captcha:" + email);
+        if (cachedCode == null || !cachedCode.equals(code)) {
+            throw new MsgException("验证码错误或已过期");
+        }
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new MsgException("该邮箱未注册账号"));
     }
 
     public User register(String name,String email, String code, String password) {

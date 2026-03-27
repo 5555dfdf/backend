@@ -26,6 +26,8 @@ public class SecurityConfig {
                         // 2. 放行你的注册和验证码 API 接口
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/me").permitAll()
+                        .requestMatchers("/specialists").permitAll()
+                        .requestMatchers("/specialist/booking-requests").permitAll()
                         .requestMatchers("/expertise/**").permitAll()
                         .requestMatchers("/pricing/quote").permitAll()
                         // 3. 其余请求需要认证

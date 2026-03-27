@@ -3,6 +3,7 @@ package org.example.coursework3.controller;
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.example.coursework3.dto.CaptchaRequest;
+import org.example.coursework3.dto.EmailLoginRequest;
 import org.example.coursework3.dto.LoginRequest;
 import org.example.coursework3.dto.RegisterRequest;
 import org.example.coursework3.entity.User;
@@ -31,7 +32,7 @@ public class AuthController {
        LoginResult loginResult = new LoginResult();
        loginResult.setUser(user);
        authService.storeToken(loginResult);
-       log.info("登录成功！已返回并存储相应token");
+       log.info("密码登录成功！已返回并存储相应token!");
        return Result.success(loginResult);
 
     }
@@ -58,6 +59,16 @@ public class AuthController {
         authService.deleteToken(token);
         log.info("已登出！并删除相应token");
         return Result.success("已登出");
+    }
+
+    @PostMapping("/login-by-email-code")
+    public Result<LoginResult> loginByEmail(@RequestBody EmailLoginRequest request){
+        User user = authService.loginByCode(request.getEmail(), request.getVerificationCode());
+        LoginResult loginResult = new LoginResult();
+        loginResult.setUser(user);
+        authService.storeToken(loginResult);
+        log.info("验证码登录成功！已返回并存储相应token!");
+        return Result.success(loginResult);
     }
 
 
