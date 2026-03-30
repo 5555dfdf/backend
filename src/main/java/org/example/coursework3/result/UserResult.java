@@ -2,6 +2,7 @@ package org.example.coursework3.result;
 
 import lombok.Data;
 import org.example.coursework3.entity.User;
+import org.jetbrains.annotations.NotNull;
 
 @Data
 public class UserResult {
@@ -11,7 +12,7 @@ public class UserResult {
     private String role;
     private String avatar;
 
-    public UserResult toDTO(User user) {
+    public UserResult toDTO(@NotNull User user) {
         UserResult dto = new UserResult();
         dto.setId(user.getId());
         dto.setName(user.getName());
