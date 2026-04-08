@@ -25,4 +25,6 @@ public interface BookingRepository extends JpaRepository<Booking,String> {
     List<Booking> findByStatus(BookingStatus status);
 
     List<Booking> findByStatusAndUpdatedAtBefore(BookingStatus status, LocalDateTime updatedAt);
+
+    List<Booking> findByStatusIn(List<BookingStatus> statuses);
 }

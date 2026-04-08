@@ -3,6 +3,7 @@ package org.example.coursework3.service;
 import org.example.coursework3.dto.response.BookingPageResult;
 import org.example.coursework3.entity.*;
 import org.example.coursework3.exception.MsgException;
+import org.example.coursework3.repository.BookingHistoryRepository;
 import org.example.coursework3.repository.BookingRepository;
 import org.example.coursework3.repository.UserRepository;
 import org.example.coursework3.dto.response.CompleteResult;
@@ -15,7 +16,11 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
 import org.example.coursework3.repository.SlotRepository;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class BookingService {
@@ -27,6 +32,8 @@ public class BookingService {
     private UserRepository userRepository;
     @Autowired
     private SlotRepository slotRepository;
+    @Autowired
+    private BookingHistoryRepository bookingHistoryRepository;
     public BookingPageResult getSpecialistBookings(String authHeader, String status, Integer page, Integer pageSize) {
         String token = authHeader.replace("Bearer ","");
         String specialistId = authService.getUserIdByToken(token);
@@ -137,5 +144,36 @@ public class BookingService {
         return result;
     }
 
+
+    @Transactional
+    public void migrateFinishedBookingToHistory() {
+        List<BookingStatus> statuses = List.of(
+                BookingStatus.Cancelled, BookingStatus.Completed, BookingStatus.Rejected);
+
+
+        List<Booking> finishedBookings = bookingRepository.findByStatusIn(statuses);
+
+        if (finishedBookings.isEmpty()) return;
+
+
+
+        List<BookingHistory> historyList = new ArrayList<>();
+        for (Booking booking : finishedBookings) {
+            BookingHistory history = new BookingHistory();
+            history.setId(UUID.randomUUID().toString());
+            history.setBookingId(booking.getId());
+            history.setStatus(booking.getStatus());
+            history.setReason(booking.getNote());
+            history.setChangedAt(booking.getUpdatedAt());
+            historyList.add(history);
+
+
+        }
+
+        bookingHistoryRepository.saveAll(historyList);
+//        bookingRepository.deleteAllInBatch(finishedBookings);
+    }
 }
+
+
 
