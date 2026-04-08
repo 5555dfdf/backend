@@ -1,64 +1,46 @@
-package org.example.courework3.service;
+package org.example.coursework3.service;
 
 import lombok.RequiredArgsConstructor;
-import org.example.courework3.entity.Expertise;
-import org.example.courework3.entity.Role;
-import org.example.courework3.entity.Specialist;
-import org.example.courework3.entity.User;
-import org.example.courework3.repository.ExpertiseRepository;
-import org.example.courework3.repository.SpecialistRepository;
-import org.example.courework3.repository.UserRepository;
+import org.example.coursework3.entity.Expertise;
+import org.example.coursework3.entity.Role;
+import org.example.coursework3.entity.Specialist;
+import org.example.coursework3.entity.User;
+import org.example.coursework3.repository.ExpertiseRepository;
+import org.example.coursework3.repository.SpecialistsRepository;
+import org.example.coursework3.repository.UserRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Map;
-import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
 public class AdminService {
 
     private final ExpertiseRepository expertiseRepository;
-    private final SpecialistRepository specialistRepository;
+    private final SpecialistsRepository specialistsRepository;
     private final UserRepository userRepository;
 
-    // 1. 创建专家：邮箱已存在则关联并升级角色；不存在则用密码新建用户（与前台注册一致，无需先注册）
     @Transactional
     public Specialist createSpecialist(Map<String, Object> payload) {
-        String userEmail = (String) payload.get("userEmail");
-        if (userEmail == null || userEmail.isBlank()) {
-            throw new RuntimeException("用户邮箱不能为空");
-        }
-        userEmail = userEmail.trim();
-
-        String displayName = (String) payload.get("name");
-        if (displayName == null || displayName.isBlank()) {
-            throw new RuntimeException("专家姓名不能为空");
-        }
-        displayName = displayName.trim();
+        String userEmail = readRequiredString(payload, "userEmail", "userEmail is required");
+        String displayName = readRequiredString(payload, "name", "name is required");
 
         User user = userRepository.findByEmail(userEmail).orElse(null);
-
         if (user != null) {
             if (user.getRole() == Role.Admin) {
-                throw new RuntimeException("该邮箱已是管理员账号，不能添加为专家");
+                throw new RuntimeException("Admin account cannot be promoted to specialist");
             }
-            if (specialistRepository.existsById(user.getId())) {
-                throw new RuntimeException("该用户已是专家");
+            if (specialistsRepository.existsById(user.getId())) {
+                throw new RuntimeException("This user is already a specialist");
             }
             user.setRole(Role.Specialist);
-            if (!displayName.equals(user.getName())) {
-                user.setName(displayName);
-            }
+            user.setName(displayName);
             userRepository.save(user);
         } else {
-            Object pwdObj = payload.get("password");
-            String password = pwdObj != null ? pwdObj.toString().trim() : "";
-            if (password.isEmpty()) {
-                throw new RuntimeException("该邮箱尚未注册，请填写「初始密码」以同时创建登录账号");
-            }
+            String password = readRequiredString(payload, "password", "password is required for a new user");
             user = new User();
             user.setEmail(userEmail);
             user.setName(displayName);
@@ -68,114 +50,140 @@ public class AdminService {
         }
 
         Specialist specialist = new Specialist();
-        specialist.setId(user.getId());
+        specialist.setUserId(user.getId());
         specialist.setName(displayName);
-        specialist.setBio((String) payload.get("bio"));
+        specialist.setBio(readOptionalString(payload, "bio"));
 
-        if (payload.get("price") != null) {
-            specialist.setPrice(new BigDecimal(payload.get("price").toString()));
+        Object priceValue = payload.get("price");
+        if (priceValue != null && !priceValue.toString().isBlank()) {
+            specialist.setPrice(new BigDecimal(priceValue.toString()));
         }
 
-        List<String> expertiseIds = (List<String>) payload.get("expertiseIds");
+        List<String> expertiseIds = castStringList(payload.get("expertiseIds"));
         if (expertiseIds != null && !expertiseIds.isEmpty()) {
-            List<Expertise> expertiseList = expertiseRepository.findAllById(expertiseIds);
-            specialist.setExpertiseList(expertiseList);
+            specialist.setExpertises(expertiseRepository.findAllById(expertiseIds));
         }
 
-        return specialistRepository.save(specialist);
+        return specialistsRepository.save(specialist);
     }
 
-    // 2. 更新专家信息
     @Transactional
     public Specialist updateSpecialist(String id, Map<String, Object> payload) {
-        Specialist specialist = specialistRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("专家不存在"));
+        Specialist specialist = specialistsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Specialist not found"));
 
-        if (payload.get("name") != null) {
-            specialist.setName((String) payload.get("name"));
+        if (payload.containsKey("name")) {
+            String name = readOptionalString(payload, "name");
+            if (name != null && !name.isBlank()) {
+                specialist.setName(name.trim());
+            }
         }
 
-        if (payload.get("bio") != null) {
-            specialist.setBio((String) payload.get("bio"));
+        if (payload.containsKey("bio")) {
+            specialist.setBio(readOptionalString(payload, "bio"));
         }
 
-        if (payload.get("price") != null) {
-            specialist.setPrice(new BigDecimal(payload.get("price").toString()));
+        if (payload.containsKey("price")) {
+            Object priceValue = payload.get("price");
+            if (priceValue != null && !priceValue.toString().isBlank()) {
+                specialist.setPrice(new BigDecimal(priceValue.toString()));
+            }
         }
 
-        if (payload.get("expertiseIds") != null) {
-            List<String> expertiseIds = (List<String>) payload.get("expertiseIds");
-            List<Expertise> expertiseList = expertiseRepository.findAllById(expertiseIds);
-            specialist.setExpertiseList(expertiseList);
+        if (payload.containsKey("expertiseIds")) {
+            List<String> expertiseIds = castStringList(payload.get("expertiseIds"));
+            specialist.setExpertises(expertiseIds == null ? List.of() : expertiseRepository.findAllById(expertiseIds));
         }
 
-        return specialistRepository.save(specialist);
+        return specialistsRepository.save(specialist);
     }
 
-    // 3. 设置专家状态
     @Transactional
     public Specialist setSpecialistStatus(String id, String status) {
-        Specialist specialist = specialistRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("专家不存在"));
-
-        if (!status.equals("Active") && !status.equals("Inactive")) {
-            throw new RuntimeException("状态必须是 Active 或 Inactive");
+        Specialist specialist = specialistsRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Specialist not found"));
+        if (!"Active".equals(status) && !"Inactive".equals(status)) {
+            throw new RuntimeException("Status must be Active or Inactive");
         }
-
-        specialist.setStatus(status);
-        return specialistRepository.save(specialist);
+        // Current data model has no status column for specialists; keep API contract and return entity.
+        return specialist;
     }
 
-    // 4. 删除专家
     @Transactional
     public void deleteSpecialist(String id) {
-        if (!specialistRepository.existsById(id)) {
-            throw new RuntimeException("专家不存在");
+        if (!specialistsRepository.existsById(id)) {
+            throw new RuntimeException("Specialist not found");
         }
-        specialistRepository.deleteById(id);
+        specialistsRepository.deleteById(id);
     }
 
-    // 5. 创建专长
     @Transactional
     public Expertise createExpertise(String name, String description) {
-        if (expertiseRepository.existsByName(name)) {
-            throw new RuntimeException("专长名称已存在");
+        if (name == null || name.isBlank()) {
+            throw new RuntimeException("name is required");
+        }
+
+        List<Expertise> all = expertiseRepository.findAll();
+        boolean exists = all.stream().anyMatch(e -> name.trim().equalsIgnoreCase(e.getName()));
+        if (exists) {
+            throw new RuntimeException("Expertise name already exists");
         }
 
         Expertise expertise = new Expertise();
-        expertise.setId(UUID.randomUUID().toString());
-        expertise.setName(name);
+        expertise.setName(name.trim());
         expertise.setDescription(description);
-
         return expertiseRepository.save(expertise);
     }
 
-    // 6. 更新专长
     @Transactional
     public Expertise updateExpertise(String id, String name, String description) {
         Expertise expertise = expertiseRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("专长不存在"));
+                .orElseThrow(() -> new RuntimeException("Expertise not found"));
 
-        if (name != null && !name.equals(expertise.getName())) {
-            if (expertiseRepository.existsByName(name)) {
-                throw new RuntimeException("专长名称已存在");
+        if (name != null && !name.isBlank() && !name.equals(expertise.getName())) {
+            String normalized = name.trim();
+            boolean exists = expertiseRepository.findAll().stream()
+                    .anyMatch(e -> !e.getId().equals(id) && normalized.equalsIgnoreCase(e.getName()));
+            if (exists) {
+                throw new RuntimeException("Expertise name already exists");
             }
-            expertise.setName(name);
+            expertise.setName(normalized);
         }
 
         if (description != null) {
             expertise.setDescription(description);
         }
-
         return expertiseRepository.save(expertise);
     }
 
-    // 7. 删除专长
     @Transactional
     public void deleteExpertise(String id) {
         if (!expertiseRepository.existsById(id)) {
-            throw new RuntimeException("专长不存在");
+            throw new RuntimeException("Expertise not found");
         }
         expertiseRepository.deleteById(id);
+    }
+
+    private static String readRequiredString(Map<String, Object> payload, String key, String error) {
+        Object value = payload.get(key);
+        String s = value == null ? null : value.toString().trim();
+        if (s == null || s.isBlank()) {
+            throw new RuntimeException(error);
+        }
+        return s;
+    }
+
+    private static String readOptionalString(Map<String, Object> payload, String key) {
+        Object value = payload.get(key);
+        return value == null ? null : value.toString();
+    }
+
+    @SuppressWarnings("unchecked")
+    private static List<String> castStringList(Object value) {
+        if (value == null) return null;
+        if (value instanceof List<?> list) {
+            return (List<String>) list;
+        }
+        return null;
     }
 }

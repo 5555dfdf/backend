@@ -1,9 +1,9 @@
-package org.example.courework3.controller;
+package org.example.coursework3.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.courework3.entity.Expertise;
-import org.example.courework3.entity.Specialist;
-import org.example.courework3.service.AdminService;
+import org.example.coursework3.entity.Expertise;
+import org.example.coursework3.entity.Specialist;
+import org.example.coursework3.service.AdminService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -44,7 +44,7 @@ public class AdminController {
         }
     }
 
-    // 3. 设置专家状态
+    // 3. 设置专家状�?
     @PostMapping("/specialists/{id}/status")
     public ResponseEntity<?> setSpecialistStatus(@PathVariable String id,
                                                  @RequestBody Map<String, String> payload) {

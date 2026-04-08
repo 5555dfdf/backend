@@ -1,4 +1,4 @@
-package org.example.courework3.entity;
+package org.example.coursework3.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -19,8 +19,9 @@ public class BookingHistory {
     @Column(name = "booking_id", nullable = false, length = 36)
     private String bookingId;
 
+    @Enumerated(EnumType.STRING)
     @Column(length = 20)
-    private String status;
+    private BookingStatus status;
 
     @Column(columnDefinition = "TEXT")
     private String reason;

@@ -1,13 +1,13 @@
-package org.example.courework3.controller;
+package org.example.coursework3.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.courework3.entity.Booking;
-import org.example.courework3.entity.Specialist;
-import org.example.courework3.entity.User;
-import org.example.courework3.repository.SpecialistRepository;
-import org.example.courework3.repository.UserRepository;
-import org.example.courework3.result.Result;
-import org.example.courework3.service.BookingService;
+import org.example.coursework3.entity.Booking;
+import org.example.coursework3.entity.Specialist;
+import org.example.coursework3.entity.User;
+import org.example.coursework3.repository.SpecialistsRepository;
+import org.example.coursework3.repository.UserRepository;
+import org.example.coursework3.result.Result;
+import org.example.coursework3.service.BookingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
@@ -23,7 +23,7 @@ import java.util.Map;
 public class BookingAdminController {
 
     private final BookingService bookingService;
-    private final SpecialistRepository specialistRepository;
+    private final SpecialistsRepository specialistRepository;
     private final UserRepository userRepository;
 
     @GetMapping

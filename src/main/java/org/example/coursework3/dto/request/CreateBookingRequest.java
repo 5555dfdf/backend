@@ -1,4 +1,4 @@
-package org.example.courework3.dto;
+package org.example.coursework3.dto;
 
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;

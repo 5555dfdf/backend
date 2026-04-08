@@ -19,6 +19,8 @@ public interface BookingRepository extends JpaRepository<Booking,String> {
     Page<Booking> findBySpecialistIdAndStatus(String specialistId, BookingStatus status, Pageable pageable);
     @NotNull
     Optional<Booking> findById(String id);
+    List<Booking> findByCustomerId(String customerId);
+    List<Booking> findByCustomerIdAndStatus(String customerId, BookingStatus status);
 
     List<Booking> findByStatusAndCreatedAtBefore(BookingStatus status, LocalDateTime createdAt);
 

@@ -194,6 +194,8 @@ export const api = {
     request(http.patch(`/admin/specialists/${id}`, payload)).then(extractDataPayload),
   adminSetSpecialistStatus: (id, payload) =>
     request(http.post(`/admin/specialists/${id}/status`, payload)).then(extractDataPayload),
+  adminDeleteSpecialist: (id) =>
+    request(http.delete(`/admin/specialists/${id}`)).then(extractDataPayload),
   adminCreateExpertise: (payload) => request(http.post('/admin/expertise', payload)).then(extractDataPayload),
   adminUpdateExpertise: (id, payload) =>
     request(http.patch(`/admin/expertise/${id}`, payload)).then(extractDataPayload),

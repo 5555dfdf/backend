@@ -1,9 +1,9 @@
-package org.example.courework3.controller;
+package org.example.coursework3.controller;
 
 import lombok.RequiredArgsConstructor;
-import org.example.courework3.entity.Slot;
-import org.example.courework3.result.Result;
-import org.example.courework3.service.SlotService;
+import org.example.coursework3.entity.Slot;
+import org.example.coursework3.result.Result;
+import org.example.coursework3.service.SlotService;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;

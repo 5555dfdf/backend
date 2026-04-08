@@ -1,4 +1,4 @@
-package org.example.courework3.entity;
+package org.example.coursework3.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;

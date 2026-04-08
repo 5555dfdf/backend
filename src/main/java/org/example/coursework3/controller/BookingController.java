@@ -1,19 +1,19 @@
-package org.example.courework3.controller;
+package org.example.coursework3.controller;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.example.courework3.dto.BookingListResponse;
-import org.example.courework3.dto.BookingResponse;
-import org.example.courework3.dto.CancelBookingRequest;
-import org.example.courework3.dto.CreateBookingRequest;
-import org.example.courework3.dto.RescheduleBookingRequest;
-import org.example.courework3.entity.Booking;
-import org.example.courework3.result.Result;
-import org.example.courework3.service.BookingService;
+import org.example.coursework3.dto.BookingListResponse;
+import org.example.coursework3.dto.BookingResponse;
+import org.example.coursework3.dto.CancelBookingRequest;
+import org.example.coursework3.dto.CreateBookingRequest;
+import org.example.coursework3.dto.RescheduleBookingRequest;
+import org.example.coursework3.entity.Booking;
+import org.example.coursework3.result.Result;
+import org.example.coursework3.service.BookingService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.example.courework3.entity.User;
+import org.example.coursework3.entity.User;
 import org.springframework.web.bind.annotation.*;
 
 @RestController

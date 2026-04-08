@@ -11,6 +11,8 @@ const searchQuery = ref('')
 
 const form = ref({
   name: '',
+  userEmail: '',
+  password: '',
   price: '',
   bio: '',
   expertiseIds: []
@@ -297,6 +299,10 @@ async function onCreate() {
     error.value = 'Please enter a name'
     return
   }
+  if (!form.value.userEmail.trim()) {
+    error.value = 'Please enter user email'
+    return
+  }
   if (!form.value.expertiseIds.length) {
     error.value = 'Please select at least one expertise item'
     return
@@ -307,11 +313,13 @@ async function onCreate() {
     const price = form.value.price === '' ? undefined : Number(form.value.price)
     await api.adminCreateSpecialist({
       name: form.value.name.trim(),
+      userEmail: form.value.userEmail.trim(),
+      password: form.value.password.trim() || undefined,
       expertiseIds: normalizeExpertiseIds(form.value.expertiseIds),
       price: Number.isFinite(price) ? price : undefined,
       bio: form.value.bio.trim() || undefined
     })
-    form.value = { name: '', price: '', bio: '', expertiseIds: [] }
+    form.value = { name: '', userEmail: '', password: '', price: '', bio: '', expertiseIds: [] }
     nameFocused.value = false
     nameLimitError.value = ''
     bioFocused.value = false
@@ -412,7 +420,17 @@ async function onDelete(row) {
   deletingId.value = specialistId
 
   try {
-    error.value = `Delete endpoint is not available yet for specialist ${specialistId}.`
+    await api.adminDeleteSpecialist(specialistId)
+    await loadSpecialists()
+    success.value = `Specialist ${specialistId} deleted successfully.`
+    if (editOpen.value && editForm.value.id === specialistId) {
+      closeEdit()
+    }
+    if (!page.value?.items?.length) {
+      searchQuery.value = ''
+    }
+  } catch (e) {
+    error.value = e?.message || `Failed to delete specialist ${specialistId}.`
   } finally {
     deletingId.value = ''
   }
@@ -529,6 +547,26 @@ watch(
             <p class="limit-helper__text">{{ nameLimitError || `Maximum ${NAME_MAX} characters` }}</p>
             <p class="limit-helper__count">{{ form.name.length }}/{{ NAME_MAX }}</p>
           </div>
+        </label>
+
+        <label class="field">
+          <span class="label">User Email</span>
+          <input
+            v-model.trim="form.userEmail"
+            class="input"
+            type="email"
+            placeholder="Enter user email"
+          />
+        </label>
+
+        <label class="field">
+          <span class="label">Initial Password (optional)</span>
+          <input
+            v-model="form.password"
+            class="input"
+            type="password"
+            placeholder="Required only if this email is not registered"
+          />
         </label>
 
         <label class="field">

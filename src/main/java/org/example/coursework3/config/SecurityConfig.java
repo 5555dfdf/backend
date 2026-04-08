@@ -1,15 +1,24 @@
 package org.example.coursework3.config;
 
+import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
+@RequiredArgsConstructor
 public class SecurityConfig {
+
+    // Keep existing auth rules and add Bearer-token authentication support.
+    private final TokenAuthenticationFilter tokenAuthenticationFilter;
 
     @Bean
     public BCryptPasswordEncoder passwordEncoder() {
@@ -19,20 +28,22 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf(csrf -> csrf.disable()) // 禁用 CSRF（开发阶段方便调试接口）
+                .csrf(csrf -> csrf.disable())
                 .authorizeHttpRequests(auth -> auth
-                        // 1. 放行所有静态资源 (index.html, css, js)
                         .requestMatchers("/", "/index.html", "/static/**", "/*.html").permitAll()
-                        // 2. 放行你的注册和验证码 API 接口
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/me").permitAll()
                         .requestMatchers("/expertise/**").permitAll()
                         .requestMatchers("/pricing/quote").permitAll()
                         .requestMatchers("/specialist/**").permitAll()
                         .requestMatchers("/specialists/**").permitAll()
-                        // 3. 其余请求需要认证
                         .anyRequest().authenticated()
-                );
+                )
+                .sessionManagement(sm -> sm.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .httpBasic(httpBasic -> httpBasic.disable())
+                .formLogin(form -> form.disable())
+                .addFilterBefore(tokenAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 }

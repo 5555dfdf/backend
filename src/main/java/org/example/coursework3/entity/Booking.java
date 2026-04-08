@@ -1,4 +1,4 @@
-package org.example.courework3.entity;
+package org.example.coursework3.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
@@ -23,7 +23,8 @@ public class Booking {
 
     private String note;
 
-    private String status = "Pending";
+    @Enumerated(EnumType.STRING)
+    private BookingStatus status = BookingStatus.Pending;
 
     @Column(name = "created_at")
     private LocalDateTime createdAt;
@@ -38,9 +39,7 @@ public class Booking {
         }
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
-        if (status == null) {
-            status = "Pending";
-        }
+        if (status == null) status = BookingStatus.Pending;
     }
 
     @PreUpdate

@@ -65,7 +65,8 @@ public class AuthService {
     }
 
     public User getSelfInfo(String userId){
-        return userRepository.findById(userId);
+        return userRepository.findById(userId)
+                .orElseThrow(() -> new MsgException("User not found"));
 
     }
 
