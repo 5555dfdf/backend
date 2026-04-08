@@ -1,54 +1,50 @@
-package org.example.coursework3.entity;
+package org.example.courework3.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.CreationTimestamp;
-import org.hibernate.annotations.UpdateTimestamp;
-
 import java.time.LocalDateTime;
+import java.util.UUID;
 
+@Data
 @Entity
 @Table(name = "bookings")
-@Data
 public class Booking {
     @Id
-    @Column(length = 36)
     private String id;
 
-    @Column(name = "customer_id", nullable = false, length = 36)
+    @Column(name = "customer_id", nullable = false)
     private String customerId;
 
-    @Column(name = "specialist_id", nullable = false,length = 36)
+    @Column(name = "specialist_id", nullable = false)
     private String specialistId;
 
-    @Column(name = "slot_id", nullable = false, length = 36)
+    @Column(name = "slot_id", nullable = false)
     private String slotId;
 
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private BookingStatus status = BookingStatus.Pending;
-
-    @Column(columnDefinition = "TEXT")
     private String note;
 
-    @CreationTimestamp
-    @Column(name = "created_at", updatable = false)
+    private String status = "Pending";
+
+    @Column(name = "created_at")
     private LocalDateTime createdAt;
 
-    @UpdateTimestamp
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
 
     @PrePersist
-    public void prePersist() {
-        LocalDateTime now = LocalDateTime.now();
-        this.createdAt = now;
-        this.updatedAt = now;
+    protected void onCreate() {
+        if (id == null) {
+            id = UUID.randomUUID().toString();
+        }
+        createdAt = LocalDateTime.now();
+        updatedAt = LocalDateTime.now();
+        if (status == null) {
+            status = "Pending";
+        }
     }
 
     @PreUpdate
-    public void preUpdate() {
-        this.updatedAt = LocalDateTime.now();
+    protected void onUpdate() {
+        updatedAt = LocalDateTime.now();
     }
 }
