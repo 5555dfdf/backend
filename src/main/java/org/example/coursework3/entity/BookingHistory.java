@@ -1,33 +1,35 @@
-package org.example.coursework3.entity;
-
+package org.example.courework3.entity;
 
 import jakarta.persistence.*;
 import lombok.Data;
-import org.hibernate.annotations.UpdateTimestamp;
+import org.hibernate.annotations.UuidGenerator;
 
 import java.time.LocalDateTime;
 
+@Data
 @Entity
 @Table(name = "booking_history")
-@Data
 public class BookingHistory {
+
     @Id
-    @Column(length = 36)
+    @UuidGenerator
+    @Column(length = 36, updatable = false, nullable = false)
     private String id;
 
     @Column(name = "booking_id", nullable = false, length = 36)
     private String bookingId;
 
-
-    @Enumerated(EnumType.STRING)
-    @Column(nullable = false)
-    private BookingStatus status = BookingStatus.Pending;
-
+    @Column(length = 20)
+    private String status;
 
     @Column(columnDefinition = "TEXT")
     private String reason;
 
-    @UpdateTimestamp
-    @Column(name = "changed_at")
+    @Column(name = "changed_at", updatable = false)
     private LocalDateTime changedAt;
+
+    @PrePersist
+    protected void onCreate() {
+        changedAt = LocalDateTime.now();
+    }
 }
