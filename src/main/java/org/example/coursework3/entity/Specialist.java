@@ -1,12 +1,17 @@
 package org.example.coursework3.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
+@AllArgsConstructor
+@NoArgsConstructor
 @Entity
 @Table(name = "specialists")
 @Data
@@ -40,6 +45,13 @@ public class Specialist {
 
     @Column(name = "updated_at")
     private LocalDateTime updatedAt;
+
+    public Specialist(String id, String name, BigDecimal price, String bio) {
+        this.userId = id;
+        this.name = name;
+        this.price = price;
+        this.bio = bio;
+    }
 
     @PrePersist
     public void prePersist() {

@@ -121,4 +121,9 @@ public class AuthService {
             throw new RuntimeException(e);
         }
     }
+
+    public Role getRoleByUserId(String userId) {
+        User user = userRepository.findById(userId);
+        return user.getRole();
+    }
 }
