@@ -12,10 +12,10 @@ http.interceptors.request.use((config) => {
   const token = localStorage.getItem(TOKEN_KEY)
   const url = config?.url || ''
   const isPublicAuthEndpoint =
-    url.startsWith('/auth/login') ||
-    url.startsWith('/auth/login-by-email-code') ||
-    url.startsWith('/auth/register') ||
-    url.startsWith('/auth/send-email-code')
+      url.startsWith('/auth/login') ||
+      url.startsWith('/auth/login-by-email-code') ||
+      url.startsWith('/auth/register') ||
+      url.startsWith('/auth/send-email-code')
 
   if (token && !isPublicAuthEndpoint) {
     config.headers = config.headers ?? {}
@@ -33,7 +33,7 @@ function throwIfHtmlString(body) {
   const t = body.trimStart()
   if (t.startsWith('<') || t.startsWith('<!')) {
     throw new Error(
-      '接口返回了 HTML 而非 JSON（请设置 VITE_API_BASE_URL，或在 vite 中把对应 API 路径代理到后端）'
+        '接口返回了 HTML 而非 JSON（请设置 VITE_API_BASE_URL，或在 vite 中把对应 API 路径代理到后端）'
     )
   }
 }
@@ -157,7 +157,7 @@ export const api = {
   register: (payload) => request(http.post('/auth/register', payload)).then(extractAuthPayload),
   login: (payload) => request(http.post('/auth/login', payload)).then(extractAuthPayload),
   loginByEmailCode: (payload) =>
-    request(http.post('/auth/login-by-email-code', payload)).then(extractAuthPayload),
+      request(http.post('/auth/login-by-email-code', payload)).then(extractAuthPayload),
   logout: () => request(http.post('/auth/logout')),
   getMe: () => request(http.get('/me')).then(normalizeMeResponse),
   updateMe: (payload) => request(http.patch('/me', payload)).then(normalizeMeResponse),
@@ -166,39 +166,41 @@ export const api = {
   listSpecialists: (params) => request(http.get('/specialists', { params })).then(extractPagePayload),
   getSpecialist: (id) => request(http.get(`/specialists/${id}`)).then(extractDataPayload),
   listSpecialistSlots: (id, params) =>
-    request(http.get(`/specialists/${id}/slots`, { params })).then(extractListPayload),
+      request(http.get(`/specialists/${id}/slots`, { params })).then(extractListPayload),
 
   createBooking: (payload) => request(http.post('/bookings', payload)).then(extractDataPayload),
   listMyBookings: (params) => request(http.get('/bookings', { params })).then(extractPagePayload),
   getBooking: (id) => request(http.get(`/bookings/${id}`)).then(extractDataPayload),
   cancelBooking: (id, payload) => request(http.post(`/bookings/${id}/cancel`, payload)).then(extractDataPayload),
   rescheduleBooking: (id, payload) =>
-    request(http.post(`/bookings/${id}/reschedule`, payload)).then(extractDataPayload),
+      request(http.post(`/bookings/${id}/reschedule`, payload)).then(extractDataPayload),
 
   listBookingRequests: (params) =>
-    request(http.get('/specialist/booking-requests', { params })).then(extractPagePayload),
+      request(http.get('/specialist/booking-requests', { params })).then(extractPagePayload),
   confirmBooking: (id) => request(http.post(`/specialist/bookings/${id}/confirm`)).then(extractDataPayload),
   rejectBooking: (id, payload) =>
-    request(http.post(`/specialist/bookings/${id}/reject`, payload)).then(extractDataPayload),
+      request(http.post(`/specialist/bookings/${id}/reject`, payload)).then(extractDataPayload),
   completeBooking: (id) =>
-    request(http.post(`/specialist/bookings/${id}/complete`)).then(extractDataPayload),
+      request(http.post(`/specialist/bookings/${id}/complete`)).then(extractDataPayload),
   adminListBookings: (params) => request(http.get('/admin/bookings', { params })).then(extractPagePayload),
   adminGetBooking: (id) => request(http.get(`/admin/bookings/${id}`)).then(extractDataPayload),
   adminListSlots: (params) => request(http.get('/admin/slots', { params })).then(extractListPayload),
   adminCreateSlot: (payload) => request(http.post('/admin/slots', payload)).then(extractDataPayload),
   adminUpdateSlot: (id, payload) =>
-    request(http.patch(`/admin/slots/${id}`, payload)).then(extractDataPayload),
+      request(http.patch(`/admin/slots/${id}`, payload)).then(extractDataPayload),
   adminDeleteSlot: (id) => request(http.delete(`/admin/slots/${id}`)).then(extractDataPayload),
   adminCreateSpecialist: (payload) => request(http.post('/admin/specialists', payload)).then(extractDataPayload),
   adminUpdateSpecialist: (id, payload) =>
-    request(http.patch(`/admin/specialists/${id}`, payload)).then(extractDataPayload),
+      request(http.patch(`/admin/specialists/${id}`, payload)).then(extractDataPayload),
   adminSetSpecialistStatus: (id, payload) =>
-    request(http.post(`/admin/specialists/${id}/status`, payload)).then(extractDataPayload),
+      request(http.post(`/admin/specialists/${id}/status`, payload)).then(extractDataPayload),
+  adminDeleteSpecialist: (id) =>
+      request(http.delete(`/admin/specialists/${id}`)).then(extractDataPayload),
   adminCreateExpertise: (payload) => request(http.post('/admin/expertise', payload)).then(extractDataPayload),
   adminUpdateExpertise: (id, payload) =>
-    request(http.patch(`/admin/expertise/${id}`, payload)).then(extractDataPayload),
+      request(http.patch(`/admin/expertise/${id}`, payload)).then(extractDataPayload),
   adminDeleteExpertise: (id) =>
-    request(http.delete(`/admin/expertise/${id}`)).then(extractDataPayload),
+      request(http.delete(`/admin/expertise/${id}`)).then(extractDataPayload),
 
   quotePricing: (payload) => request(http.post('/pricing/quote', payload)).then(extractDataOrListPayload)
 }
