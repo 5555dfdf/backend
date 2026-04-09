@@ -6,7 +6,6 @@ import AppLayout from '@/layouts/AppLayout.vue'
 
 import LoginPage from '@/pages/public/LoginPage.vue'
 import ExpertAdminLoginPage from '@/pages/public/ExpertAdminLoginPage.vue'
-import AdminRegisterPage from '@/pages/public/AdminRegisterPage.vue'
 import RegisterPage from '@/pages/public/RegisterPage.vue'
 import DevLoginPage from '@/pages/public/DevLoginPage.vue'
 
@@ -47,7 +46,6 @@ const routes = [
     children: [
       { path: 'login', name: 'login', component: LoginPage },
       { path: 'expert-admin-login', name: 'expert-admin-login', component: ExpertAdminLoginPage },
-      { path: 'admin-register', name: 'admin-register', component: AdminRegisterPage },
       { path: 'register', name: 'register', component: RegisterPage },
       { path: 'dev-login', name: 'dev-login', component: DevLoginPage }
     ]
