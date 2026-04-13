@@ -26,7 +26,7 @@ public class AdminController {
     // 1. 创建专家
     @PostMapping("/specialists")
     public Result<Specialist> createSpecialist(@RequestHeader("Authorization") String authHeader, @RequestBody CreateSpecialistRequest request) {
-        if (!authService.verifyAsAdmin(authHeader)) {
+        if (authService.verifyAsAdmin(authHeader)) {
             return Result.success(adminService.createSpecialist(request));
         }
         return Result.error("ERROR","请以管理员身份创建");
@@ -35,7 +35,7 @@ public class AdminController {
     // 2. 更新专家信息
     @PatchMapping("/specialists/{id}")
     public Result<Specialist> updateSpecialist(@RequestHeader("Authorization") String authHeader, @PathVariable String id, @RequestBody EditSpecialistRequest request) {
-        if (!authService.verifyAsAdmin(authHeader)) {
+        if (authService.verifyAsAdmin(authHeader)) {
             return Result.success(adminService.updateSpecialist(id, request));
         }
         return Result.error("ERROR","请以管理员身份修改");
