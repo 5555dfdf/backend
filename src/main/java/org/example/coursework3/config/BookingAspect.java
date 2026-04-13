@@ -11,7 +11,7 @@ import org.springframework.context.annotation.Configuration;
 @Aspect
 @Slf4j
 @Configuration
-public class BookingMigrationAspect {
+public class BookingAspect {
 
     @Autowired
     private BookingService bookingService;

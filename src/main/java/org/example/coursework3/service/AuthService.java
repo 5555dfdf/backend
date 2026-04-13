@@ -18,12 +18,28 @@ public class AuthService {
     private final UserRepository userRepository;
 
     public boolean verifyAsAdmin(String authHeader){
-        String token = authHeader.replace("Bearer ", "");
-        String userId = getUserIdByToken(token);
-        Role role = getRoleByUserId(userId);
-        return role == Role.Admin;
+//        String token = authHeader.replace("Bearer ", "");
+//        String userId = getUserIdByToken(token);
+//        Role role = getRoleByUserId(userId);
+        return getRoleByAuth(authHeader) == Role.Admin;
     }
 
+    public boolean verifyAsSpecialist(String authHeader){
+        return getRoleByAuth(authHeader) == Role.Specialist;
+    }
+
+    public boolean verifyAsCustomer(String authHeader){
+        return getRoleByAuth(authHeader) == Role.Customer;
+    }
+
+    public Role getRoleByAuth(String authHeader){
+        return getRoleByUserId(getUserIdByAuth(authHeader));
+    }
+
+    public String getUserIdByAuth(String authHeader){
+        String token = authHeader.replace("Bearer ", "");
+        return getUserIdByToken(token);
+    }
 
     public void storeToken(AuthResult result) {
         storeToken(result.getToken(), result.getUser().getId());
