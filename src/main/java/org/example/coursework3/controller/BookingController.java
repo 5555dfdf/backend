@@ -2,6 +2,7 @@ package org.example.coursework3.controller;
 
 import lombok.RequiredArgsConstructor;
 import org.example.coursework3.dto.request.CreateBookingRequest;
+import org.example.coursework3.dto.response.BookingPageResult;
 import org.example.coursework3.dto.response.CreateBookingResult;
 import org.example.coursework3.result.Result;
 import org.example.coursework3.service.AuthService;
@@ -25,6 +26,22 @@ public class BookingController {
             return Result.error("ERROR", "请以顾客身份修改");
         }
         return Result.success(bookingService.creatBooking(authService.getUserIdByAuth(authHeader), request));
-
     }
+
+    @GetMapping
+    public Result<BookingPageResult> getMyBookings(@RequestHeader("Authorization") String authHeader,
+                                                   @RequestParam(required = false) String status,
+                                                   @RequestParam(defaultValue = "1") Integer page,
+                                                   @RequestParam(defaultValue = "10") Integer pageSize,
+                                                   @RequestParam(required = false) String from,
+                                                   @RequestParam(required = false) String to){
+        if (!authService.verifyAsCustomer(authHeader)) {
+            return Result.error("ERROR", "请以顾客身份查看");
+        }
+        String userId = authService.getUserIdByAuth(authHeader);
+        BookingPageResult pageResult = bookingService.getMyBookings(userId, status, page, pageSize, from, to);
+        return Result.success(pageResult);
+    }
+
+
 }

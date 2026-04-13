@@ -2,24 +2,30 @@ package org.example.coursework3.service;
 
 import lombok.RequiredArgsConstructor;
 import org.example.coursework3.dto.request.CreateBookingRequest;
+import org.example.coursework3.dto.response.BookingPageResult;
 import org.example.coursework3.dto.response.CreateBookingResult;
 import org.example.coursework3.entity.Booking;
+import org.example.coursework3.entity.BookingStatus;
 import org.example.coursework3.entity.Slot;
-import org.example.coursework3.entity.Specialist;
 import org.example.coursework3.exception.MsgException;
 import org.example.coursework3.repository.BookingRepository;
 import org.example.coursework3.repository.SlotRepository;
-import org.example.coursework3.repository.SpecialistsRepository;
-import org.example.coursework3.repository.UserRepository;
+import org.example.coursework3.vo.MyBookingVo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeParseException;
+import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class CustomerBookingService {
     private final SlotRepository slotRepository;
     private final BookingRepository bookingRepository;
-//    private final UserRepository userRepository;
 
     @Transactional
     public CreateBookingResult creatBooking(String userId, CreateBookingRequest request) {
@@ -37,5 +43,70 @@ public class CustomerBookingService {
         slotRepository.save(slot);
 
         return new CreateBookingResult(booking.getId(), booking.getSpecialistId(), booking.getSlotId(), booking.getStatus());
+    }
+
+    public BookingPageResult getMyBookings(String userId, String status, Integer page, Integer pageSize, String from, String to) {
+        int safePage = page == null || page < 1 ? 1 : page;
+        int safePageSize = pageSize == null || pageSize < 1 ? 10 : pageSize;
+
+        List<Booking> bookings;
+        BookingStatus bookingStatus = null;
+        if (status != null && !status.isBlank()) {
+            try {
+                bookingStatus = BookingStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                throw new MsgException("无效的状态值：" + status);
+            }
+        }
+
+        if (bookingStatus == null) {
+            bookings = bookingRepository.findByCustomerId(userId);
+        } else {
+            bookings = bookingRepository.findByCustomerIdAndStatus(userId, bookingStatus);
+        }
+
+        LocalDateTime fromTime = parseDate(from, true);
+        LocalDateTime toTime = parseDate(to, false);
+        List<MyBookingVo> allItems = new ArrayList<>();
+
+        bookings.stream()
+                .sorted(Comparator.comparing(Booking::getCreatedAt).reversed())
+                .forEach(booking -> {
+                    Slot slot = slotRepository.findById(booking.getSlotId()).orElse(null);
+                    if (slot == null) {
+                        return;
+                    }
+                    LocalDateTime startTime = slot.getStartTime();
+                    if (fromTime != null && startTime.isBefore(fromTime)) {
+                        return;
+                    }
+                    if (toTime != null && startTime.isAfter(toTime)) {
+                        return;
+                    }
+                    allItems.add(MyBookingVo.fromBooking(booking, slot));
+                });
+
+        int total = allItems.size();
+        int start = Math.min((safePage - 1) * safePageSize, total);
+        int end = Math.min(start + safePageSize, total);
+        List<MyBookingVo> pageItems = allItems.subList(start, end);
+
+        return BookingPageResult.of(pageItems, total, safePage, safePageSize);
+    }
+
+    private LocalDateTime parseDate(String value, boolean isFrom) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        try {
+            return LocalDateTime.parse(value);
+        } catch (DateTimeParseException ignored) {
+        }
+        try {
+            LocalDate date = LocalDate.parse(value);
+            return isFrom ? date.atStartOfDay() : date.atTime(23, 59, 59);
+        } catch (DateTimeParseException e) {
+            throw new MsgException("日期格式错误：" + value);
+        }
     }
 }
