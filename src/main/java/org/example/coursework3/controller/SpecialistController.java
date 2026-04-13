@@ -7,7 +7,7 @@ import org.example.coursework3.dto.response.ConfirmResult;
 
 import org.example.coursework3.dto.response.RejectResult;
 import org.example.coursework3.result.Result;
-import org.example.coursework3.service.BookingService;
+import org.example.coursework3.service.SpecialistBookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.*;
 public class SpecialistController {
 
     @Autowired
-    private BookingService bookingService;
+    private SpecialistBookingService bookingService;
 
     @GetMapping("/booking-requests")
     public Result<BookingPageResult> getBookingRequests(@RequestHeader("Authorization") String authHeader,
@@ -25,7 +25,6 @@ public class SpecialistController {
                                                         @RequestParam(defaultValue = "1") Integer page,
                                                         @RequestParam(defaultValue = "10") Integer pageSize) {
         BookingPageResult pageResult = bookingService.getSpecialistBookings(authHeader, status, page, pageSize);
-        System.out.println(pageResult);
         return Result.success(pageResult);
     }
 
@@ -42,7 +41,6 @@ public class SpecialistController {
                                               @RequestBody(required = false)RejectRequest rejectRequest) {
         String reason = rejectRequest != null? rejectRequest.getReason() : null;
         RejectResult rejectResult = bookingService.rejectBooking(authHeader,bookingId, reason);
-
         return Result.success(rejectResult);
     }
     @PostMapping("bookings/{id}/complete")

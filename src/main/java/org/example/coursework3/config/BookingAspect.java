@@ -4,7 +4,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.annotation.AfterReturning;
 import org.aspectj.lang.annotation.Aspect;
 import org.example.coursework3.entity.Booking;
-import org.example.coursework3.service.BookingService;
+import org.example.coursework3.service.SpecialistBookingService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 
@@ -14,7 +14,7 @@ import org.springframework.context.annotation.Configuration;
 public class BookingAspect {
 
     @Autowired
-    private BookingService bookingService;
+    private SpecialistBookingService bookingService;
 
     // 获取刚刚保存成功的 Booking 对象 / list<Booking> auto-completed, rejected
     @AfterReturning(

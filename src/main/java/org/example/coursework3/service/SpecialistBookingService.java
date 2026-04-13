@@ -24,7 +24,7 @@ import java.util.UUID;
 
 @Slf4j
 @Service
-public class BookingService {
+public class SpecialistBookingService {
     @Autowired
     private BookingRepository bookingRepository;
     @Autowired
@@ -39,7 +39,6 @@ public class BookingService {
         String token = authHeader.replace("Bearer ","");
         String specialistId = authService.getUserIdByToken(token);
         User specialist = userRepository.findById(specialistId);
-        System.out.println(specialist);
         if (specialist.getRole() != Role.Specialist){
             throw new MsgException("您不是专家，无权访问");
         }
@@ -144,35 +143,6 @@ public class BookingService {
         result.setId(bookingId);
         return result;
     }
-
-
-//    @Transactional
-//    public void migrateFinishedBookingToHistory() {
-//        List<BookingStatus> statuses = List.of(
-//                BookingStatus.Cancelled, BookingStatus.Completed, BookingStatus.Rejected);
-//
-//
-//        List<Booking> finishedBookings = bookingRepository.findByStatusIn(statuses);
-//
-//        if (finishedBookings.isEmpty()) return;
-//
-//
-//
-//        List<BookingHistory> historyList = new ArrayList<>();
-//        for (Booking booking : finishedBookings) {
-//            BookingHistory history = new BookingHistory();
-//            history.setId(UUID.randomUUID().toString());
-//            history.setBookingId(booking.getId());
-//            history.setStatus(booking.getStatus());
-//            history.setReason(booking.getNote());
-//            history.setChangedAt(booking.getUpdatedAt());
-//            historyList.add(history);
-//
-//
-//        }
-//
-//        bookingHistoryRepository.saveAll(historyList);
-//    }
 
     @Transactional
     public void createBookingHistory(Booking booking) {
