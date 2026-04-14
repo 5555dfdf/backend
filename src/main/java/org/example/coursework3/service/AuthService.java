@@ -7,6 +7,7 @@ import org.example.coursework3.entity.User;
 import org.example.coursework3.repository.UserRepository;
 import org.example.coursework3.result.AuthResult;
 import org.springframework.data.redis.core.StringRedisTemplate;
+import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import java.util.concurrent.TimeUnit;
 
@@ -16,6 +17,7 @@ public class AuthService {
 
     private final StringRedisTemplate redisTemplate;
     private final UserRepository userRepository;
+    private final BCryptPasswordEncoder passwordEncoder;
 
     public void storeToken(AuthResult result) {
         storeToken(result.getToken(), result.getUser().getId());
@@ -75,7 +77,7 @@ public class AuthService {
 
         String passwordHash = user.getPasswordHash();
 
-        if (!passwordHash.equals(password)) {
+        if (!passwordEncoder.matches(password, user.getPasswordHash())) {
             throw new MsgException("密码不正确");
         }
 
@@ -109,7 +111,7 @@ public class AuthService {
             user.setName(name);
             user.setEmail(email);
             user.setRole(Role.Customer);
-            user.setPasswordHash(password);
+            user.setPasswordHash(passwordEncoder.encode(password));
 
 
             userRepository.save(user);

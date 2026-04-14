@@ -137,5 +137,142 @@ public class BookingService {
         return result;
     }
 
+    // ===================== 客户端预约方法 =====================
+
+    public Booking createBooking(String authHeader, String specialistId, String slotId, String note) {
+        String token = authHeader.replace("Bearer ", "");
+        String customerId = authService.getUserIdByToken(token);
+
+        // 校验 slot 存在且可用
+        Slot slot = slotRepository.findById(slotId)
+                .orElseThrow(() -> new MsgException("时段不存在"));
+        if (!slot.getAvailable()) {
+            throw new MsgException("该时段已不可预约");
+        }
+        if (!slot.getSpecialistId().equals(specialistId)) {
+            throw new MsgException("时段与专家不匹配");
+        }
+
+        Booking booking = new Booking();
+        booking.setId(java.util.UUID.randomUUID().toString());
+        booking.setCustomerId(customerId);
+        booking.setSpecialistId(specialistId);
+        booking.setSlotId(slotId);
+        booking.setNote(note);
+        booking.setStatus(BookingStatus.Pending);
+
+        bookingRepository.save(booking);
+        return booking;
+    }
+
+    public BookingPageResult getCustomerBookings(String authHeader, String status, Integer page, Integer pageSize) {
+        String token = authHeader.replace("Bearer ", "");
+        String customerId = authService.getUserIdByToken(token);
+        User customer = userRepository.findById(customerId);
+        String customerName = customer != null ? customer.getName() : null;
+
+        BookingStatus statusEnum = null;
+        if (status != null && !status.isEmpty()) {
+            try {
+                statusEnum = BookingStatus.valueOf(status);
+            } catch (IllegalArgumentException e) {
+                throw new MsgException("无效的状态值：" + status);
+            }
+        }
+
+        PageRequest pageRequest = PageRequest.of(Math.max(0, page - 1), pageSize, Sort.by(Sort.Direction.DESC, "createdAt"));
+        Page<Booking> bookingPage;
+        if (statusEnum == null) {
+            bookingPage = bookingRepository.findByCustomerId(customerId, pageRequest);
+        } else {
+            bookingPage = bookingRepository.findByCustomerIdAndStatus(customerId, statusEnum, pageRequest);
+        }
+
+        List<BookingRequestVo> voList = bookingPage.getContent().stream()
+                .map(booking -> {
+                    Slot slot = slotRepository.findById(booking.getSlotId()).orElse(null);
+                    return BookingRequestVo.fromBooking(booking, customerName, slot);
+                }).toList();
+
+        return BookingPageResult.of(voList, bookingPage.getTotalElements(), page, pageSize);
+    }
+
+    public Booking getBookingDetail(String authHeader, String bookingId) {
+        String token = authHeader.replace("Bearer ", "");
+        String customerId = authService.getUserIdByToken(token);
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new MsgException("预约不存在"));
+        if (!booking.getCustomerId().equals(customerId)) {
+            throw new MsgException("无权查看此预约");
+        }
+        return booking;
+    }
+
+    public Booking customerCancelBooking(String authHeader, String bookingId, String reason) {
+        String token = authHeader.replace("Bearer ", "");
+        String customerId = authService.getUserIdByToken(token);
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new MsgException("预约不存在"));
+        if (!booking.getCustomerId().equals(customerId)) {
+            throw new MsgException("无权操作此预约");
+        }
+        if (booking.getStatus() == BookingStatus.Cancelled || booking.getStatus() == BookingStatus.Completed) {
+            throw new MsgException("该预约无法取消");
+        }
+
+        booking.setStatus(BookingStatus.Cancelled);
+        if (reason != null && !reason.isEmpty()) {
+            booking.setNote(reason);
+        }
+
+        // 释放时段
+        Slot slot = slotRepository.findById(booking.getSlotId()).orElse(null);
+        if (slot != null) {
+            slot.setAvailable(true);
+            slotRepository.save(slot);
+        }
+
+        bookingRepository.save(booking);
+        return booking;
+    }
+
+    public Booking customerRescheduleBooking(String authHeader, String bookingId, String newSlotId) {
+        String token = authHeader.replace("Bearer ", "");
+        String customerId = authService.getUserIdByToken(token);
+
+        Booking booking = bookingRepository.findById(bookingId)
+                .orElseThrow(() -> new MsgException("预约不存在"));
+        if (!booking.getCustomerId().equals(customerId)) {
+            throw new MsgException("无权操作此预约");
+        }
+        if (booking.getStatus() == BookingStatus.Cancelled || booking.getStatus() == BookingStatus.Completed) {
+            throw new MsgException("该预约无法改期");
+        }
+
+        // 校验新时段
+        Slot newSlot = slotRepository.findById(newSlotId)
+                .orElseThrow(() -> new MsgException("新时段不存在"));
+        if (!newSlot.getAvailable()) {
+            throw new MsgException("新时段不可用");
+        }
+        if (!newSlot.getSpecialistId().equals(booking.getSpecialistId())) {
+            throw new MsgException("新时段与原专家不匹配");
+        }
+
+        // 释放旧时段
+        Slot oldSlot = slotRepository.findById(booking.getSlotId()).orElse(null);
+        if (oldSlot != null) {
+            oldSlot.setAvailable(true);
+            slotRepository.save(oldSlot);
+        }
+
+        booking.setSlotId(newSlotId);
+        booking.setStatus(BookingStatus.Rescheduled);
+        bookingRepository.save(booking);
+        return booking;
+    }
+
 }
 

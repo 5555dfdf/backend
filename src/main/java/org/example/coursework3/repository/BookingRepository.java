@@ -15,6 +15,11 @@ public interface BookingRepository extends JpaRepository<Booking,String> {
     Page<Booking> findBySpecialistId(String specialistId, Pageable pageable);
 
     Page<Booking> findBySpecialistIdAndStatus(String specialistId, BookingStatus status, Pageable pageable);
+
+    Page<Booking> findByCustomerId(String customerId, Pageable pageable);
+
+    Page<Booking> findByCustomerIdAndStatus(String customerId, BookingStatus status, Pageable pageable);
+
     @NotNull
     Optional<Booking> findById(String id);
 
