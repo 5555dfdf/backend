@@ -1,6 +1,7 @@
 package org.example.coursework3.service;
 
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.example.coursework3.dto.request.CreateBookingRequest;
 import org.example.coursework3.dto.response.BookingActionResult;
 import org.example.coursework3.dto.response.BookingPageResult;
@@ -20,6 +21,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -27,6 +29,7 @@ import java.util.List;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CustomerBookingService {
     private final SlotRepository slotRepository;
     private final BookingRepository bookingRepository;
@@ -126,42 +129,28 @@ public class CustomerBookingService {
         return SingleBookingVo.fromBooking(booking, slot, specialistName);
     }
 
+    @Transactional
     public BookingActionResult cancelBooking(String id) {
+        Booking booking = bookingRepository.getBookingById(id);
+        if (booking.getStatus() != BookingStatus.Confirmed && booking.getStatus() != BookingStatus.Pending) {
+            throw new MsgException("当前预约状态无法执行取消操作");
+        }
+        booking.setStatus(BookingStatus.Cancelled);
+        bookingRepository.save(booking);
+        Slot slot = slotRepository.getSlotById(booking.getSlotId());
+        slot.setAvailable(true);
 
+        try {
+            User specialist = userRepository.findById(booking.getSpecialistId());
+            if (specialist != null && specialist.getEmail() != null) {
+                String timeRange = slot.getStartTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")) + " — " +
+                        slot.getEndTime().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                aliyunMailService.sendCancellationNoticeToSpecialist(specialist.getEmail(), timeRange);
+            }
+        } catch (Exception e) {
+            log.warn("发送专家取消通知失败: {}", e.getMessage());
+        }
         return new BookingActionResult(id, BookingStatus.Cancelled);
     }
 
-
-//    @Transactional
-//    public void cancelBooking(String userId, String bookingId) {
-//        Booking booking = bookingRepository.findById(bookingId)
-//                .orElseThrow(() -> new MsgException("未找到该预约记录"));
-//
-//        if (!booking.getCustomerId().equals(userId)) {
-//            throw new MsgException("您无权取消此预约");
-//        }
-//
-//        if (booking.getStatus() != BookingStatus.Confirmed && booking.getStatus() != BookingStatus.Pending) {
-//            throw new MsgException("当前预约状态无法执行取消操作");
-//        }
-//
-//        booking.setStatus(BookingStatus.Cancelled);
-//        bookingRepository.save(booking);
-//
-//
-//        Slot slot = slotRepository.findById(booking.getSlotId())
-//                .orElseThrow(() -> new MsgException("关联的时段不存在"));
-//        slot.setAvailable(true);
-//        slotRepository.save(slot);
-//
-//        try {
-//            User specialist = userRepository.findById(booking.getSpecialistId());
-//            if (specialist != null && specialist.getEmail() != null) {
-//                String timeRange = slot.getStartTime().toString() + " — " + slot.getEndTime().toString();
-//                aliyunMailService.sendCancellationNoticeToSpecialist(specialist.getEmail(), timeRange);
-//            }
-//        } catch (Exception e) {
-//            System.err.println("发送专家取消通知失败: " + e.getMessage());
-//        }
-//    }
 }
