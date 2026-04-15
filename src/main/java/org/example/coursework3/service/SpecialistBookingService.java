@@ -187,6 +187,3 @@ public class SpecialistBookingService {
         bookingHistoryRepository.save(history);
     }
 }
-
-
-

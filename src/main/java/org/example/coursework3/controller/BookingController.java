@@ -1,10 +1,12 @@
 package org.example.coursework3.controller;
 
 import lombok.RequiredArgsConstructor;
+import org.example.coursework3.dto.RescheduleBookingRequest;
 import org.example.coursework3.dto.request.CreateBookingRequest;
 import org.example.coursework3.dto.response.BookingActionResult;
 import org.example.coursework3.dto.response.BookingPageResult;
 import org.example.coursework3.dto.response.CreateBookingResult;
+import org.example.coursework3.entity.Booking;
 import org.example.coursework3.result.Result;
 import org.example.coursework3.service.AuthService;
 import org.example.coursework3.service.CustomerBookingService;
@@ -59,6 +61,17 @@ public class BookingController {
             return Result.error("ERROR", "请以顾客身份查看");
         }
         return Result.success(bookingService.cancelBooking(id));
+    }
+
+    @PostMapping("/{id}/reschedule")
+    public Result<Booking> rescheduleBooking(@RequestHeader("Authorization") String authHeader,
+                                              @PathVariable String id,
+                                              @RequestBody RescheduleBookingRequest request){
+        if (!authService.verifyAsCustomer(authHeader)) {
+            return Result.error("ERROR", "请以顾客身份修改");
+        }
+        String userId = authService.getUserIdByAuth(authHeader);
+        return Result.success(bookingService.rescheduleBooking(userId, id, request.getSlotId()));
     }
 
 }
