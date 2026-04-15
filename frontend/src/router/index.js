@@ -20,6 +20,8 @@ import SpecialistDashboardPage from '@/pages/specialist/SpecialistDashboardPage.
 import SpecialistSchedulePage from '@/pages/specialist/SpecialistSchedulePage.vue'
 import SpecialistRequestsPage from '@/pages/specialist/SpecialistRequestsPage.vue'
 import SpecialistBookingDetailPage from '@/pages/specialist/SpecialistBookingDetailPage.vue'
+import SpecialistSlotsPage from '@/pages/specialist/SpecialistSlotsPage.vue'
+import SpecialistSlotCreatePage from '@/pages/specialist/SpecialistSlotCreatePage.vue'
 
 import AdminDashboardPage from '@/pages/admin/AdminDashboardPage.vue'
 import AdminSpecialistsPage from '@/pages/admin/AdminSpecialistsPage.vue'
@@ -82,7 +84,10 @@ const routes = [
       { path: 'dashboard', name: 'specialist.dashboard', component: SpecialistDashboardPage },
       { path: 'schedule', name: 'specialist.schedule', component: SpecialistSchedulePage },
       { path: 'requests', name: 'specialist.requests', component: SpecialistRequestsPage },
-      { path: 'bookings/:id', name: 'specialist.bookingDetail', component: SpecialistBookingDetailPage, props: true }
+      { path: 'bookings/:id', name: 'specialist.bookingDetail', component: SpecialistBookingDetailPage, props: true },
+      { path: 'slots', name: 'specialist.slots', component: SpecialistSlotsPage },
+      { path: 'slots/create', name: 'specialist.slotCreate', component: SpecialistSlotCreatePage },
+      { path: 'slots/:id/edit', name: 'specialist.slotEdit', component: SpecialistSlotCreatePage, props: true }
     ]
   },
   {

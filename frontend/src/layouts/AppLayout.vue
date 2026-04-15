@@ -1,4 +1,4 @@
-﻿<script setup>
+<script setup>
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
@@ -36,7 +36,8 @@ const links = computed(() => {
     return [
       { to: '/specialist/dashboard', label: 'Dashboard', icon: House },
       { to: '/specialist/requests', label: 'Requests', icon: CalendarCheck },
-      { to: '/specialist/schedule', label: 'Schedule', icon: Clock3 }
+      { to: '/specialist/slots', label: 'Slots', icon: Clock3 },
+      { to: '/specialist/schedule', label: 'Schedule', icon: CalendarCheck }
     ]
   }
   if (role.value === 'Customer') {
