@@ -12,6 +12,7 @@ import org.example.coursework3.vo.AdminSlotVo;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
@@ -181,13 +182,26 @@ public class AdminService {
             vo.setStart(start.toLocalTime().format(timeFmt));
             vo.setEnd(end.toLocalTime().format(timeFmt));
             vo.setAvailable(s.getAvailable());
+            vo.setAmount(s.getAmount());
+            vo.setCurrency(s.getCurrency());
+            vo.setDuration(s.getDuration());
+            vo.setType(s.getType());
+            vo.setDetail(s.getDetail());
             result.add(vo);
         }
 
         return result;
     }
 
-    public AdminSlotVo createSlot(String specialistId, String date, String from, String to, Boolean available) {
+    public AdminSlotVo createSlot(SlotRequest request) {
+        if (request == null) {
+            throw new MsgException("请求体不能为空");
+        }
+        String specialistId = request.getSpecialistId();
+        String date = request.getDate();
+        String from = request.getStart();
+        String to = request.getEnd();
+        Boolean available = request.getAvailable();
         if (specialistId == null || specialistId.isBlank()) {
             throw new MsgException("specialistId不能为空");
         }
@@ -214,6 +228,11 @@ public class AdminService {
         slot.setStartTime(startNew);
         slot.setEndTime(endNew);
         slot.setAvailable(available);
+        slot.setAmount(normalizeAmount(request.getAmount()));
+        slot.setCurrency(normalizeCurrency(request.getCurrency()));
+        slot.setDuration(validateDuration(request.getDuration()));
+        slot.setType(normalizeType(request.getType()));
+        slot.setDetail(normalizeDetail(request.getDetail()));
         slotRepository.save(slot);
 
         AdminSlotVo vo = new AdminSlotVo();
@@ -223,6 +242,11 @@ public class AdminService {
         vo.setStart(from.trim());
         vo.setEnd(to.trim());
         vo.setAvailable(slot.getAvailable());
+        vo.setAmount(slot.getAmount());
+        vo.setCurrency(slot.getCurrency());
+        vo.setDuration(slot.getDuration());
+        vo.setType(slot.getType());
+        vo.setDetail(slot.getDetail());
         return vo;
     }
 
@@ -263,6 +287,21 @@ public class AdminService {
         if (request.getAvailable() != null) {
             slot.setAvailable(request.getAvailable());
         }
+        if (request.getAmount() != null) {
+            slot.setAmount(normalizeAmount(request.getAmount()));
+        }
+        if (request.getCurrency() != null) {
+            slot.setCurrency(normalizeCurrency(request.getCurrency()));
+        }
+        if (request.getDuration() != null) {
+            slot.setDuration(validateDuration(request.getDuration()));
+        }
+        if (request.getType() != null) {
+            slot.setType(normalizeType(request.getType()));
+        }
+        if (request.getDetail() != null) {
+            slot.setDetail(normalizeDetail(request.getDetail()));
+        }
         slotRepository.save(slot);
 
         DateTimeFormatter timeFmt = DateTimeFormatter.ofPattern("HH:mm");
@@ -273,6 +312,11 @@ public class AdminService {
         vo.setStart(slot.getStartTime().toLocalTime().format(timeFmt));
         vo.setEnd(slot.getEndTime().toLocalTime().format(timeFmt));
         vo.setAvailable(slot.getAvailable());
+        vo.setAmount(slot.getAmount());
+        vo.setCurrency(slot.getCurrency());
+        vo.setDuration(slot.getDuration());
+        vo.setType(slot.getType());
+        vo.setDetail(slot.getDetail());
         return vo;
     }
 
@@ -324,6 +368,56 @@ public class AdminService {
     private boolean isTimeOverlap(LocalDateTime newStart, LocalDateTime newEnd,
                                   LocalDateTime oldStart, LocalDateTime oldEnd) {
         return newStart.isBefore(oldEnd) && oldStart.isBefore(newEnd);
+    }
+
+    private BigDecimal normalizeAmount(BigDecimal amount) {
+        if (amount == null) {
+            return BigDecimal.ZERO;
+        }
+        if (amount.compareTo(BigDecimal.ZERO) < 0) {
+            throw new MsgException("amount不能小于0");
+        }
+        return amount.setScale(2, java.math.RoundingMode.HALF_UP);
+    }
+
+    private String normalizeCurrency(String currency) {
+        String value = currency == null ? "CNY" : currency.trim().toUpperCase();
+        if (value.isEmpty()) {
+            value = "CNY";
+        }
+        if (value.length() > 10) {
+            throw new MsgException("currency长度不能超过10");
+        }
+        return value;
+    }
+
+    private Integer validateDuration(Integer duration) {
+        if (duration == null) {
+            throw new MsgException("duration不能为空");
+        }
+        if (duration <= 0) {
+            throw new MsgException("duration必须大于0");
+        }
+        return duration;
+    }
+
+    private String normalizeType(String type) {
+        String value = type == null ? "online" : type.trim().toLowerCase();
+        if (value.isEmpty()) {
+            value = "online";
+        }
+        if (value.length() > 20) {
+            throw new MsgException("type长度不能超过20");
+        }
+        return value;
+    }
+
+    private String normalizeDetail(String detail) {
+        if (detail == null) {
+            return null;
+        }
+        String value = detail.trim();
+        return value.isEmpty() ? null : value;
     }
 
     public BookingPageResult listBookings(Integer page, Integer pageSize) {

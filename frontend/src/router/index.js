@@ -25,6 +25,7 @@ import AdminDashboardPage from '@/pages/admin/AdminDashboardPage.vue'
 import AdminSpecialistsPage from '@/pages/admin/AdminSpecialistsPage.vue'
 import AdminExpertisePage from '@/pages/admin/AdminExpertisePage.vue'
 import AdminSlotsPage from '@/pages/admin/AdminSlotsPage.vue'
+import AdminSlotCreatePage from '@/pages/admin/AdminSlotCreatePage.vue'
 import AdminPricingPage from '@/pages/admin/AdminPricingPage.vue'
 import AdminBookingsPage from '@/pages/admin/AdminBookingsPage.vue'
 
@@ -94,6 +95,7 @@ const routes = [
       { path: 'specialists', name: 'admin.specialists', component: AdminSpecialistsPage },
       { path: 'expertise', name: 'admin.expertise', component: AdminExpertisePage },
       { path: 'slots', name: 'admin.slots', component: AdminSlotsPage },
+      { path: 'slots/create', name: 'admin.slotCreate', component: AdminSlotCreatePage },
       { path: 'pricing', name: 'admin.pricing', component: AdminPricingPage },
       { path: 'bookings', name: 'admin.bookings', component: AdminBookingsPage }
     ]

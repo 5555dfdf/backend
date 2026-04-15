@@ -4,6 +4,7 @@ import org.example.coursework3.entity.Booking;
 import org.example.coursework3.entity.BookingStatus;
 import org.example.coursework3.entity.Slot;
 
+import java.math.BigDecimal;
 import java.time.Duration;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -18,6 +19,10 @@ public class SingleBookingVo {
     private BookingStatus status;
     private String note;
     private String duration;
+    private BigDecimal amount;
+    private String currency;
+    private String type;
+    private String detail;
 
 
     public static SingleBookingVo fromBooking(Booking booking, Slot slot, String specialistName) {
@@ -32,6 +37,10 @@ public class SingleBookingVo {
         Duration duration = Duration.between(slot.getStartTime(), slot.getEndTime());
         long time = duration.toMinutes();
         vo.setDuration(time + " minutes");
+        vo.setAmount(slot.getAmount());
+        vo.setCurrency(slot.getCurrency());
+        vo.setType(slot.getType());
+        vo.setDetail(slot.getDetail());
         return vo;
     }
 }

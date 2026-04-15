@@ -119,7 +119,7 @@ public class AdminController {
         if (!authService.verifyAsAdmin(authHeader)) {
             return Result.error("ERROR", "please use admin role");
         }
-        return Result.success(adminService.createSlot(request.getSpecialistId(), request.getDate(), request.getStart(), request.getEnd(), request.getAvailable()));
+        return Result.success(adminService.createSlot(request));
     }
 
     @PatchMapping("/slots/{id}")
