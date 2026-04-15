@@ -12,7 +12,6 @@ const booking = ref(null)
 const loading = ref(false)
 const error = ref('')
 const cancelReason = ref('')
-const newSlotId = ref('')
 const busy = ref('')
 const actionError = ref('')
 
@@ -51,20 +50,17 @@ async function onCancel() {
   }
 }
 
-async function onReschedule() {
-  actionError.value = ''
-  if (!newSlotId.value.trim()) {
-    actionError.value = 'Please enter a new slotId'
+function goReschedule() {
+  const specialistId = booking.value?.specialistId
+  if (!specialistId) {
+    actionError.value = 'Missing specialistId for reschedule'
     return
   }
-  busy.value = 'reschedule'
-  try {
-    booking.value = await api.rescheduleBooking(props.id, { slotId: newSlotId.value.trim() })
-  } catch (e) {
-    actionError.value = e?.message || 'Failed to reschedule'
-  } finally {
-    busy.value = ''
-  }
+  router.push({
+    name: 'customer.specialistSlots',
+    params: { id: specialistId },
+    query: { bookingId: props.id }
+  })
 }
 </script>
 
@@ -112,17 +108,12 @@ async function onReschedule() {
 
       <div class="card">
         <div class="title">Reschedule</div>
-        <label class="field">
-          <span class="label">New slotId</span>
-          <input v-model="newSlotId" class="input" placeholder="Get from specialist slots" />
-        </label>
         <button
           type="button"
           class="btn"
-          :disabled="busy === 'reschedule'"
-          @click="onReschedule"
+          @click="goReschedule"
         >
-          {{ busy === 'reschedule' ? 'Processing…' : 'Submit Reschedule' }}
+          Choose a new time slot
         </button>
       </div>
 

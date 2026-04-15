@@ -58,7 +58,15 @@ const routes = [
       { path: '', redirect: '/customer/specialists' },
       { path: 'specialists', name: 'customer.specialists', component: CustomerSpecialistsPage },
       { path: 'specialists/:id', name: 'customer.specialistDetail', component: CustomerSpecialistDetailPage, props: true },
-      { path: 'specialists/:id/slots', name: 'customer.specialistSlots', component: CustomerSpecialistSlotsPage, props: true },
+      {
+        path: 'specialists/:id/slots',
+        name: 'customer.specialistSlots',
+        component: CustomerSpecialistSlotsPage,
+        props: (route) => ({
+          id: route.params.id,
+          bookingId: route.query.bookingId || ''
+        })
+      },
       { path: 'bookings', name: 'customer.bookings', component: CustomerBookingsPage },
       { path: 'bookings/:id', name: 'customer.bookingDetail', component: CustomerBookingDetailPage, props: true },
       { path: 'profile', name: 'customer.profile', component: CustomerProfilePage }
