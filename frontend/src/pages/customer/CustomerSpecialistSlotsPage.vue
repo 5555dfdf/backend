@@ -1,13 +1,16 @@
 <script setup>
-import { ref, watch } from 'vue'
+import { computed, ref, watch } from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '@/api/client'
 import { showAlertModal } from '@/ui/alertModal'
 
 const props = defineProps({
-  id: { type: String, required: true }
+  id: { type: String, required: true },
+  bookingId: { type: String, default: '' }
 })
 const router = useRouter()
+
+const isReschedule = computed(() => !!props.bookingId)
 
 const slots = ref([])
 const slotDate = ref(new Date().toISOString().slice(0, 10))
@@ -63,21 +66,31 @@ async function submitBooking() {
   submitting.value = true
   error.value = ''
   try {
-    await api.createBooking({
-      specialistId: props.id,
-      slotId: selectedSlotId.value,
-      note: note.value.trim() || undefined
-    })
-    note.value = ''
-    selectedSlotId.value = ''
-    showAlertModal({
-      type: 'success',
-      message: 'Booking request submitted successfully.',
-      onClose: () => router.push({ name: 'customer.bookings' })
-    })
+    if (isReschedule.value) {
+      await api.rescheduleBooking(props.bookingId, { slotId: selectedSlotId.value })
+      selectedSlotId.value = ''
+      showAlertModal({
+        type: 'success',
+        message: 'Rescheduled successfully.',
+        onClose: () => router.push({ name: 'customer.bookingDetail', params: { id: props.bookingId } })
+      })
+    } else {
+      await api.createBooking({
+        specialistId: props.id,
+        slotId: selectedSlotId.value,
+        note: note.value.trim() || undefined
+      })
+      note.value = ''
+      selectedSlotId.value = ''
+      showAlertModal({
+        type: 'success',
+        message: 'Booking request submitted successfully.',
+        onClose: () => router.push({ name: 'customer.bookings' })
+      })
+    }
     await loadSlots()
   } catch (e) {
-    error.value = e?.message || 'Failed to submit booking'
+    error.value = e?.message || (isReschedule.value ? 'Failed to reschedule' : 'Failed to submit booking')
     showAlertModal({ type: 'error', message: error.value })
   } finally {
     submitting.value = false
@@ -101,8 +114,10 @@ defineExpose({
 <template>
   <section class="page">
     <header class="page__header">
-      <h1>Specialist Available Slots</h1>
-      <p class="subtitle">Choose a date and an available time slot to submit your booking request.</p>
+      <h1>{{ isReschedule ? 'Reschedule - Choose a New Slot' : 'Specialist Available Slots' }}</h1>
+      <p class="subtitle">
+        {{ isReschedule ? 'Choose a new available time slot to reschedule this booking.' : 'Choose a date and an available time slot to submit your booking request.' }}
+      </p>
     </header>
 
     <div v-if="error" class="banner banner--error" role="alert">{{ error }}</div>
@@ -135,7 +150,7 @@ defineExpose({
 
         <p v-else class="muted small">No available slots for this date.</p>
 
-        <label class="field field-note">
+        <label v-if="!isReschedule" class="field field-note">
           <span class="label">Note (optional)</span>
           <textarea
             v-model="note"
@@ -152,7 +167,7 @@ defineExpose({
           :disabled="submitting || !selectedSlotId"
           @click="submitBooking"
         >
-          {{ submitting ? 'Submitting...' : 'Submit Booking Request' }}
+          {{ submitting ? 'Submitting...' : isReschedule ? 'Submit Reschedule' : 'Submit Booking Request' }}
         </button>
       </div>
     </template>
