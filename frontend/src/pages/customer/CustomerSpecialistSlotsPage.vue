@@ -34,6 +34,24 @@ function formatSlotRange(slot) {
   return `${formatSlotTime(slot?.start ?? slot?.startTime)} - ${formatSlotTime(slot?.end ?? slot?.endTime)}`
 }
 
+function formatMoney(slot) {
+  const amount = Number(slot?.amount ?? 0)
+  const safeAmount = Number.isNaN(amount) ? 0 : amount
+  const currency = String(slot?.currency ?? 'CNY').trim() || 'CNY'
+  return `${safeAmount.toFixed(2)} ${currency}`
+}
+
+function formatSession(slot) {
+  const duration = Number(slot?.duration ?? 0)
+  const safeDuration = Number.isNaN(duration) || duration <= 0 ? '--' : `${duration} min`
+  const type = String(slot?.type ?? 'online').trim() || 'online'
+  return `${safeDuration} · ${type}`
+}
+
+function formatDetail(slot) {
+  return String(slot?.detail ?? '').trim() || '--'
+}
+
 async function loadSlots() {
   if (!props.id) return
 
@@ -142,7 +160,11 @@ defineExpose({
                   :value="sl.slotId ?? sl.id"
                   :disabled="sl.available === false"
               />
-              <span>{{ formatSlotRange(sl) }}</span>
+              <div class="slot-main">
+                <span class="slot-time">{{ formatSlotRange(sl) }}</span>
+                <span class="slot-meta">{{ formatMoney(sl) }} · {{ formatSession(sl) }}</span>
+                <span class="slot-meta slot-meta--detail" :title="formatDetail(sl)">Detail: {{ formatDetail(sl) }}</span>
+              </div>
               <span v-if="sl.available === false" class="muted small">(Full)</span>
             </label>
           </li>
@@ -252,7 +274,7 @@ defineExpose({
 
 .pick {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
   flex-wrap: wrap;
   cursor: pointer;
@@ -260,6 +282,29 @@ defineExpose({
   border-radius: 10px;
   border: 1px solid #e6e8ef;
   background: #f8fafc;
+}
+
+.slot-main {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.slot-time {
+  font-weight: 700;
+  color: #111827;
+}
+
+.slot-meta {
+  font-size: 12px;
+  color: #4b5563;
+}
+
+.slot-meta--detail {
+  max-width: 560px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .banner {

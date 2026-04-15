@@ -15,6 +15,13 @@ const cancelReason = ref('')
 const busy = ref('')
 const actionError = ref('')
 
+function formatMoney(amount, currency) {
+  const n = Number(amount ?? 0)
+  const safe = Number.isNaN(n) ? 0 : n
+  const c = String(currency ?? 'CNY').trim() || 'CNY'
+  return `${safe.toFixed(2)} ${c}`
+}
+
 async function load() {
   error.value = ''
   loading.value = true
@@ -85,6 +92,12 @@ function goReschedule() {
           <dd>{{ booking.specialistName ?? booking.specialistId ?? '—' }}</dd>
           <dt>Duration</dt>
           <dd>{{ booking.duration ?? booking.slot ?? booking.slotId ?? '—' }}</dd>
+          <dt>Price</dt>
+          <dd>{{ formatMoney(booking.amount, booking.currency) }}</dd>
+          <dt>Type</dt>
+          <dd>{{ booking.type ?? '—' }}</dd>
+          <dt>Detail</dt>
+          <dd class="detail-text" :title="booking.detail ?? '—'">{{ booking.detail ?? '—' }}</dd>
           <dt>Note</dt>
           <dd>{{ booking.note ?? '—' }}</dd>
         </dl>
@@ -168,6 +181,13 @@ function goReschedule() {
 }
 .kv dd {
   margin: 0;
+}
+
+.detail-text {
+  max-width: 520px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .field {
   display: grid;
