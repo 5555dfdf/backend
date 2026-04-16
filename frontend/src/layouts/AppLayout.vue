@@ -2,6 +2,7 @@
 import { computed, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { showConfirmModal } from '@/ui/confirmModal'
 import {
   BadgeDollarSign,
   CalendarCheck,
@@ -50,9 +51,15 @@ const links = computed(() => {
   return []
 })
 
-async function onLogout() {
-  await auth.logout()
-  await router.replace({ name: 'login' })
+function onLogout() {
+  showConfirmModal({
+    title: '退出登录',
+    message: '您确定要退出当前账号吗？',
+    onConfirm: async () => {
+      await auth.logout()
+      await router.replace({ name: 'login' })
+    }
+  })
 }
 </script>
 

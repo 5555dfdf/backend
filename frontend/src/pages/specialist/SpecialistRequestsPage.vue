@@ -2,6 +2,7 @@
 import { onMounted, ref, watch } from 'vue'
 import { RouterLink } from 'vue-router'
 import { api } from '@/api/client'
+import { showConfirmModal } from '@/ui/confirmModal'
 const status = ref('Pending')
 const page = ref({ items: [], total: 0 })
 const loading = ref(false)
@@ -27,29 +28,41 @@ async function load() {
 onMounted(load)
 watch(status, () => load())
 
-async function onConfirm(id) {
-  busyId.value = id
-  try {
-    await api.confirmBooking(id)
-    await load()
-  } catch (e) {
-    error.value = e?.message || 'Failed to confirm'
-  } finally {
-    busyId.value = ''
-  }
+function onConfirm(id) {
+  showConfirmModal({
+    title: '确认接受',
+    message: '您确定要接受此预约请求吗？',
+    onConfirm: async () => {
+      busyId.value = id
+      try {
+        await api.confirmBooking(id)
+        await load()
+      } catch (e) {
+        error.value = e?.message || 'Failed to confirm'
+      } finally {
+        busyId.value = ''
+      }
+    }
+  })
 }
 
-async function onReject(id) {
-  busyId.value = id
-  try {
-    await api.rejectBooking(id, { reason: rejectReason.value.trim() || undefined })
-    rejectReason.value = ''
-    await load()
-  } catch (e) {
-    error.value = e?.message || 'Failed to reject'
-  } finally {
-    busyId.value = ''
-  }
+function onReject(id) {
+  showConfirmModal({
+    title: '拒绝预约',
+    message: '您确定要拒绝此预约请求吗?',
+    onConfirm: async () => {
+      busyId.value = id
+      try {
+        await api.rejectBooking(id, { reason: rejectReason.value.trim() || undefined })
+        rejectReason.value = ''
+        await load()
+      } catch (e) {
+        error.value = e?.message || 'Failed to reject'
+      } finally {
+        busyId.value = ''
+      }
+    }
+  })
 }
 </script>
 

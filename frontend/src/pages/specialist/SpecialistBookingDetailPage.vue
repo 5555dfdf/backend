@@ -2,7 +2,7 @@
 import {onMounted, onUnmounted, ref, watch} from 'vue'
 import { useRouter } from 'vue-router'
 import { api } from '@/api/client'
-
+import { showConfirmModal } from '@/ui/confirmModal'
 const props = defineProps({
   id: { type: String, required: true }
 })
@@ -33,20 +33,45 @@ watch(
   { immediate: true }
 )
 
-async function run(action) {
-  busy.value = action
-  try {
-    if (action === 'confirm') booking.value = await api.confirmBooking(props.id)
-    else if (action === 'reject')
-      booking.value = await api.rejectBooking(props.id, {
-        reason: rejectReason.value.trim() || undefined
-      })
-    else if (action === 'complete') booking.value = await api.completeBooking(props.id)
-  } catch (e) {
-    error.value = e?.message || 'Operation failed'
-  } finally {
-    busy.value = ''
+function run(action) {
+  // 根据不同的动作，设置不同的提示文案
+  let title = ''
+  let message = ''
+
+  if (action === 'confirm') {
+    title = '确认接受'
+    message = '您确定要接受此预约吗？'
+  } else if (action === 'reject') {
+    title = '拒绝预约'
+    message = '您确定要拒绝此预约吗？'
+  } else if (action === 'complete') {
+    title = '完成预约'
+    message = '您确定该预约服务已经完成了吗？'
   }
+
+  // 弹出提示框
+  showConfirmModal({
+    title: title,
+    message: message,
+    onConfirm: async () => {
+      busy.value = action
+      try {
+        if (action === 'confirm') {
+          booking.value = await api.confirmBooking(props.id)
+        } else if (action === 'reject') {
+          booking.value = await api.rejectBooking(props.id, {
+            reason: rejectReason.value.trim() || undefined
+          })
+        } else if (action === 'complete') {
+          booking.value = await api.completeBooking(props.id)
+        }
+      } catch (e) {
+        error.value = e?.message || 'Operation failed'
+      } finally {
+        busy.value = ''
+      }
+    }
+  })
 }
 
 // 1. 在顶层声明变量，不要在这里赋值

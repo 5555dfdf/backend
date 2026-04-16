@@ -90,17 +90,17 @@ public class SpecialistBookingService {
                 .orElseThrow(()-> new MsgException("No such reservation"));
         Slot slot = slotRepository.findById(booking.getSlotId()).orElseThrow(() -> new MsgException("No such slot"));
         if (!booking.getSpecialistId().equals(specialistId)) {
-            throw new MsgException("No right to handle this reservation");
+            throw new MsgException("Without right to handle this reservation");
         }
         if (booking.getStatus() != BookingStatus.Pending){
-            throw new MsgException("Can just handling pending reservations");
+            throw new MsgException("Can only handle pending reservations");
         }
         booking.setStatus(BookingStatus.Confirmed);
         bookingRepository.save(booking);
         //发送邮件逻辑
         try {
             User customer = userRepository.findById(booking.getCustomerId());
-            Specialist specialist = specialistsRepository.getByUserId(booking.getSpecialistId());
+            User specialist = userRepository.getUserById(booking.getSpecialistId());
             if (customer != null && customer.getEmail() != null) {
                 aliyunMailService.sendBookingStatusNotification(specialist.getName(), customer.getEmail(), "Confirmed", null);
             }
@@ -120,10 +120,10 @@ public class SpecialistBookingService {
                 .orElseThrow(()-> new MsgException("No such reservation"));
 
         if (!booking.getSpecialistId().equals(specialistId)) {
-            throw new MsgException("No right to handle this reservation");
+            throw new MsgException("Without right to handle this reservation");
         }
         if (booking.getStatus() != BookingStatus.Pending){
-            throw new MsgException("Can just handling pending reservations");
+            throw new MsgException("Can only handle pending reservations");
         }
         booking.setStatus(BookingStatus.Rejected);
         booking.setNote(reason);
@@ -134,7 +134,7 @@ public class SpecialistBookingService {
         //发送邮件
         try {
             User customer = userRepository.findById(booking.getCustomerId());
-            Specialist specialist = specialistsRepository.getByUserId(booking.getSpecialistId());
+            User specialist = userRepository.getUserById(booking.getSpecialistId());
             if (customer != null && customer.getEmail() != null) {
                 aliyunMailService.sendBookingStatusNotification(specialist.getName(), customer.getEmail(), "Rejected", reason);
             }
@@ -151,10 +151,10 @@ public class SpecialistBookingService {
                 .orElseThrow(()-> new MsgException("No such reservation"));
 
         if (!booking.getSpecialistId().equals(specialistId)) {
-            throw new MsgException("No right to handle this reservation");
+            throw new MsgException("Without right to handle this reservation");
         }
         if (booking.getStatus() != BookingStatus.Confirmed){
-            throw new MsgException("Can just handling Confirmed reservations");
+            throw new MsgException("Can only handle Confirmed reservations");
         }
         booking.setStatus(BookingStatus.Completed);
         bookingRepository.save(booking);
