@@ -39,14 +39,15 @@ function run(action) {
   let message = ''
 
   if (action === 'confirm') {
-    title = '确认接受'
-    message = '您确定要接受此预约吗？'
+    title = 'Confirm acceptance'
+    message = 'Are you sure you want to accept this reservation?'
   } else if (action === 'reject') {
-    title = '拒绝预约'
-    message = '您确定要拒绝此预约吗？'
+    title = 'Refuse Reservation'
+    message = 'Are you sure you want to decline this reservation?'
   } else if (action === 'complete') {
-    title = '完成预约'
-    message = '您确定该预约服务已经完成了吗？'
+    title = 'Complete Reservation'
+    message = 'Are you sure that this reservation service has been completed?  \n' +
+        'Once confirmed, the status will change to \'Completed\'.'
   }
 
   // 弹出提示框
@@ -74,7 +75,7 @@ function run(action) {
   })
 }
 
-// 1. 在顶层声明变量，不要在这里赋值
+
 let autoUpdateTimer = null
 
 async function handleAutoStatusUpdate() {
@@ -90,18 +91,18 @@ async function handleAutoStatusUpdate() {
 }
 
 onMounted(() => {
-  // 立即执行一次
+
   handleAutoStatusUpdate()
 
-  // 2. 赋值给顶层变量，去掉 const
+
   autoUpdateTimer = setInterval(handleAutoStatusUpdate, 3600000)
 })
 
 onUnmounted(() => {
-  // 3. 现在这里可以正常访问到变量了
+
   if (autoUpdateTimer) {
     clearInterval(autoUpdateTimer)
-    autoUpdateTimer = null // 良好的习惯：清理引用
+    autoUpdateTimer = null
   }
 })
 </script>

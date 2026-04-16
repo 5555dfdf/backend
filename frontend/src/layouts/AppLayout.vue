@@ -53,8 +53,8 @@ const links = computed(() => {
 
 function onLogout() {
   showConfirmModal({
-    title: '退出登录',
-    message: '您确定要退出当前账号吗？',
+    title: 'Log out',
+    message: 'Are you sure you want to log out of the current account?',
     onConfirm: async () => {
       await auth.logout()
       await router.replace({ name: 'login' })

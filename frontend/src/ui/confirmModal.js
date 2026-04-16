@@ -10,8 +10,8 @@ const state = reactive({
 
 export function showConfirmModal(payload) {
     const p = payload ?? {}
-    state.title = p.title || '确认操作'
-    state.message = p.message || '您确定要执行此操作吗？'
+    state.title = p.title || 'Confirm operation'
+    state.message = p.message || 'Are you sure you want to perform this action?'
     state.onConfirm = typeof p.onConfirm === 'function' ? p.onConfirm : null
     state.onCancel = typeof p.onCancel === 'function' ? p.onCancel : null
     state.open = true

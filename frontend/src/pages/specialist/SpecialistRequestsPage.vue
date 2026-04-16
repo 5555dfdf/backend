@@ -30,8 +30,8 @@ watch(status, () => load())
 
 function onConfirm(id) {
   showConfirmModal({
-    title: '确认接受',
-    message: '您确定要接受此预约请求吗？',
+    title: 'Confirm acceptance',
+    message: 'Are you sure you want to accept this reservation?',
     onConfirm: async () => {
       busyId.value = id
       try {
@@ -48,8 +48,8 @@ function onConfirm(id) {
 
 function onReject(id) {
   showConfirmModal({
-    title: '拒绝预约',
-    message: '您确定要拒绝此预约请求吗?',
+    title: 'Refuse Reservation',
+    message: 'Are you sure you want to decline this reservation',
     onConfirm: async () => {
       busyId.value = id
       try {

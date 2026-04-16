@@ -17,8 +17,8 @@ const state = useConfirmModalState()
         </div>
 
         <footer class="am-footer">
-          <button type="button" class="am-btn am-btn--ghost" @click="cancelAction">取消</button>
-          <button type="button" class="am-btn am-btn--primary" @click="confirmAction">确定</button>
+          <button type="button" class="am-btn am-btn--ghost" @click="cancelAction">Cancel</button>
+          <button type="button" class="am-btn am-btn--primary" @click="confirmAction">Confirm</button>
         </footer>
       </section>
     </div>
