@@ -318,6 +318,8 @@ export const api = {
       request(http.get(`/bookings/unpaid-payments/${paymentIntentId}`)).then(extractDataPayload),
   resumeUnpaidPayment: (paymentIntentId) =>
       request(http.post(`/bookings/unpaid-payments/${paymentIntentId}/resume`)).then(extractPaymentPayload),
+  cancelUnpaidPayment: (paymentIntentId) =>
+      request(http.post(`/bookings/unpaid-payments/${paymentIntentId}/cancel`)),
 
   // Specialist slot management
   specialistListSlots: (params) => request(http.get('/specialist/slots', { params })).then(extractListPayload),

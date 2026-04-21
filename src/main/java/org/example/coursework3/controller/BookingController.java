@@ -147,4 +147,15 @@ public class BookingController {
         String userId = authService.getUserIdByAuth(authHeader);
         return Result.success(bookingService.resumeUnpaidPayment(userId, id));
     }
+
+    @PostMapping("/unpaid-payments/{id}/cancel")
+    public Result<Void> cancelUnpaidPayment(@RequestHeader("Authorization") String authHeader,
+                                            @PathVariable String id) {
+        if (!authService.verifyAsCustomer(authHeader)) {
+            return Result.error("ERROR", "请以顾客身份支付");
+        }
+        String userId = authService.getUserIdByAuth(authHeader);
+        bookingService.cancelUnpaidPayment(userId, id);
+        return Result.success("支付单已取消");
+    }
 }

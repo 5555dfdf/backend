@@ -211,6 +211,25 @@ async function mockPaymentAndGoBookings() {
   paymentBusy.value = false
 }
 
+async function cancelPaymentAndCloseModal() {
+  if (!paymentContext.value.paymentIntentId) {
+    paymentError.value = 'Missing payment intent id for cancellation'
+    return
+  }
+  paymentBusy.value = true
+  paymentError.value = ''
+  try {
+    await api.cancelUnpaidPayment(paymentContext.value.paymentIntentId)
+  } catch (e) {
+    paymentError.value = e?.message || 'Failed to cancel payment'
+    paymentBusy.value = false
+    return
+  }
+  paymentModalOpen.value = false
+  showAlertModal({ type: 'success', message: 'Payment cancelled.' })
+  paymentBusy.value = false
+}
+
 function nextSevenDates() {
   const out = []
   const base = new Date()
@@ -432,8 +451,8 @@ defineExpose({
       <section class="payment-modal-card" role="dialog" aria-modal="true" aria-label="Booking Payment">
         <header class="payment-modal-head">
           <h3 class="payment-modal-title">Complete Payment</h3>
-          <button type="button" class="payment-modal-close" :disabled="paymentBusy" @click="closePaymentModal">
-            ×
+          <button type="button" class="btn-secondary" :disabled="paymentBusy" @click="closePaymentModal">
+            Pay Later
           </button>
         </header>
 
@@ -451,11 +470,11 @@ defineExpose({
         </div>
 
         <footer class="payment-modal-foot">
+          <button type="button" class="btn-secondary" :disabled="paymentBusy" @click="cancelPaymentAndCloseModal">
+            Cancel
+          </button>
           <button type="button" class="btn-secondary" :disabled="paymentBusy" @click="mockPaymentAndGoBookings">
             Mock Payment
-          </button>
-          <button type="button" class="btn-secondary" :disabled="paymentBusy" @click="closePaymentModal">
-            Pay Later
           </button>
           <button type="button" class="btn-submit" :disabled="paymentBusy" @click="confirmPaymentAndGoBookings">
             {{ paymentBusy ? 'Confirming...' : 'Paid' }}

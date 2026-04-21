@@ -319,6 +319,26 @@ public class CustomerBookingService {
         return new CreateBookingPaymentResult(newPaymentToken, newPaymentToken, qrCodeUrl, draft.getAmount(), draft.getCurrency());
     }
 
+    public void cancelUnpaidPayment(String userId, String paymentIntentId) {
+        String normalizedIntentId = safeTrim(paymentIntentId);
+        if (normalizedIntentId.isBlank()) {
+            throw new MsgException("payment intent id不能为空");
+        }
+        PaymentDraft draft = (PaymentDraft) redisTemplate.opsForValue().get(PAYMENT_DRAFT_KEY + normalizedIntentId);
+        if (draft == null) {
+            redisTemplate.opsForZSet().remove(userUnpaidKey(userId), normalizedIntentId);
+            throw new MsgException("未支付订单不存在或已过期");
+        }
+        if (!userId.equals(draft.getCustomerId())) {
+            throw new MsgException("无权限操作该支付单");
+        }
+        if (draft.isPaid()) {
+            redisTemplate.opsForZSet().remove(userUnpaidKey(userId), normalizedIntentId);
+            throw new MsgException("该支付单已支付，无法取消");
+        }
+        cleanupIntent(userId, normalizedIntentId, draft.getPaymentId());
+    }
+
     public BookingPageResult getMyBookings(String userId, String status, Integer page, Integer pageSize, String from, String to) {
         int safePage = page == null || page < 1 ? 1 : page;
         int safePageSize = pageSize == null || pageSize < 1 ? 10 : pageSize;

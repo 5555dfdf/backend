@@ -76,6 +76,8 @@ url: jdbc:mysql://localhost:3306/booking_system?useSSL=false&allowPublicKeyRetri
   - GIVEN confirm + create booking succeeds, WHEN success modal closes, THEN page should navigate to `My Bookings`.
   - GIVEN Alipay config is missing/invalid, WHEN customer triggers payment creation, THEN frontend should show explicit error and not fake success.
 
+
+七、支付相关（Booking 扩展功能）
 ### PBI：支付接口拆分（3个）
 
 #### PBI 1 - 创建支付单接口
@@ -109,7 +111,7 @@ url: jdbc:mysql://localhost:3306/booking_system?useSSL=false&allowPublicKeyRetri
  - 前端
 
 - 预约提交流程改造：`createBooking` 后不再直接跳转，改为弹出支付二维码弹窗。
-- 支付弹窗交互完成：展示 `paymentIntentId`、slot、金额、二维码；支持 `Pay Later` 与 `Paid` 两个操作按钮。
+- 支付弹窗交互完成：展示 `paymentIntentId`、slot、金额、二维码；支持 `Pay Later`、`Cancel`、`Mock Payment` 与 `Paid` 操作。
 - 支付确认流程接入：`Paid` 点击后先调用支付确认接口，再调用 `POST /bookings` 创建预约，成功提示后跳转 `My Bookings`。
 - 新增模拟支付按钮：主二维码弹窗与悬浮球继续支付弹窗均支持 `Mock Payment`，用于测试环境快速完成支付闭环。
 
@@ -189,3 +191,13 @@ url: jdbc:mysql://localhost:3306/booking_system?useSSL=false&allowPublicKeyRetri
   - GIVEN mock switch is enabled and intent belongs to current customer, WHEN calling this API, THEN backend marks draft payment as paid and returns success.
   - GIVEN mock switch is disabled, WHEN calling this API, THEN API returns explicit error.
   - GIVEN intent does not exist or does not belong to current customer, WHEN calling this API, THEN API returns permission/not-found error.
+
+### PBI 9 - 取消未支付订单接口（Cancel）
+
+- **接口**: `POST /bookings/unpaid-payments/{id}/cancel`
+- **User Story**  
+  As a customer, I want to cancel an unpaid payment intent from QR modal, so that abandoned payment attempts are removed from my unpaid list.
+- **Acceptance Criteria**
+  - GIVEN intent belongs to current customer and is unpaid, WHEN calling cancel API, THEN backend removes payment draft/outTrade mapping/user unpaid index and returns success.
+  - GIVEN intent is already paid, WHEN calling cancel API, THEN API returns explicit error and does not remove paid state.
+  - GIVEN intent is expired/not found/not owned by current user, WHEN calling cancel API, THEN API returns clear not-found/permission error.

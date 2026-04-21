@@ -252,6 +252,22 @@ async function mockPaymentFromPanel() {
   }
 }
 
+async function cancelPaymentFromPanel() {
+  if (!paymentPanel.value.paymentIntentId) return
+  paymentBusy.value = true
+  paymentError.value = ''
+  try {
+    await api.cancelUnpaidPayment(paymentPanel.value.paymentIntentId)
+    closePaymentPanel()
+    await loadUnpaidPayments()
+    showAlertModal({ type: 'success', message: 'Payment cancelled.' })
+  } catch (e) {
+    paymentError.value = e?.message || 'Failed to cancel payment'
+  } finally {
+    paymentBusy.value = false
+  }
+}
+
 watch(role, (nextRole) => {
   if (nextRole === 'Customer') {
     startUnpaidPolling()
@@ -363,7 +379,7 @@ onBeforeUnmount(() => {
         <section class="payment-modal-card" role="dialog" aria-modal="true" aria-label="Continue Payment">
           <header class="payment-modal-head">
             <h3 class="payment-modal-title">Continue Payment</h3>
-            <button type="button" class="payment-modal-close" :disabled="paymentBusy" @click="closePaymentPanel">×</button>
+            <button type="button" class="payment-btn-secondary" :disabled="paymentBusy" @click="closePaymentPanel">Pay Later</button>
           </header>
           <div class="payment-modal-body">
             <p class="payment-tip">Intent: {{ paymentPanel.paymentIntentId }}</p>
@@ -375,8 +391,8 @@ onBeforeUnmount(() => {
             <p v-if="paymentError" class="payment-banner">{{ paymentError }}</p>
           </div>
           <footer class="payment-modal-foot">
+            <button type="button" class="payment-btn-secondary" :disabled="paymentBusy" @click="cancelPaymentFromPanel">Cancel</button>
             <button type="button" class="payment-btn-secondary" :disabled="paymentBusy" @click="mockPaymentFromPanel">Mock Payment</button>
-            <button type="button" class="payment-btn-secondary" :disabled="paymentBusy" @click="closePaymentPanel">Pay Later</button>
             <button type="button" class="payment-btn-submit" :disabled="paymentBusy" @click="confirmPaymentFromPanel">
               {{ paymentBusy ? 'Confirming...' : 'Paid' }}
             </button>
