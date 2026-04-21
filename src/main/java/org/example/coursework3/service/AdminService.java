@@ -276,6 +276,10 @@ public class AdminService {
 
         LocalDateTime startNew = parseDateAndTime(date.trim(), startStr.trim());
         LocalDateTime endNew = parseDateAndTime(date.trim(), endStr.trim());
+        LocalDateTime now = LocalDateTime.now();
+        if (startNew.isBefore(now)){
+            throw new MsgException("开始时间不得晚于当前时间");
+        }
         if (!startNew.isBefore(endNew)) {
             throw new MsgException("开始时间必须早于结束时间");
         }
@@ -292,7 +296,8 @@ public class AdminService {
 
         slot.setStartTime(startNew);
         slot.setEndTime(endNew);
-        if (slot.getAvailable()&&request.getAvailable() != null) {
+        boolean free = whetherFree(id);
+        if (free&&request.getAvailable() != null) {
             slot.setAvailable(request.getAvailable());
         }else {
             throw new MsgException("该时段已有预约无法修改状态");
@@ -315,6 +320,17 @@ public class AdminService {
         slotRepository.save(slot);
         return AdminSlotVo.form(slot);
     }
+
+    public boolean whetherFree(String slotId){
+        List<Booking> bookingList = bookingRepository.getBookingBySlotId(slotId);
+        for (Booking booking : bookingList){
+            if (booking.getStatus()==BookingStatus.Pending||booking.getStatus()==BookingStatus.Confirmed){
+                return false;
+            }
+        }
+        return true;
+    }
+
 
     public void deleteSlot(String id) {
         if (id == null || id.isBlank()) {
