@@ -1,0 +1,40 @@
+spring:
+  # database
+  datasource:
+    url:  jdbc:mysql://localhost:3306/booking_system?useSSL=false&serverTimezone=Asia/Shanghai&allowPublicKeyRetrieval=true
+    username: root
+    password: 123456
+    driver-class-name: com.mysql.cj.jdbc.Driver
+
+  # Redis
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      database: 0
+
+
+  jpa:
+    open-in-view: false
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+
+aliyun:
+  mail:
+    access-key-id: ${ALICLOUD_ACCESS_KEY_ID}
+    access-key-secret: ${ALICLOUD_ACCESS_KEY_SECRET}
+    region: cn-hangzhou
+    from-address: service@mail.fulingyi.xyz
+
+alipay:
+  gateway-url: https://openapi-sandbox.dl.alipaydev.com/gateway.do
+  app-id: ${ALIPAY_APP_ID}
+  private-key: ${ALIPAY_PRIVATE_KEY}
+  public-key: ${ALIPAY_PUBLIC_KEY}
+  notify-url: ${ALIPAY_NOTIFY_URL}
+
+payment:
+  mock-enabled: true
+
+
