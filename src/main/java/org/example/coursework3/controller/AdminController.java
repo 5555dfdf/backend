@@ -38,7 +38,7 @@ public class AdminController {
         if (authService.verifyAsAdmin(authHeader)) {
             return Result.success(adminService.createSpecialist(request));
         }
-        return Result.error("ERROR","请以管理员身份创建");
+        return Result.error("ERROR","Please create as an admin");
     }
 
     // 2. 更新专家信息
@@ -47,7 +47,7 @@ public class AdminController {
         if (authService.verifyAsAdmin(authHeader)) {
             return Result.success(adminService.updateSpecialist(id, request));
         }
-        return Result.error("ERROR","请以管理员身份修改");
+        return Result.error("ERROR","Please edit as an admin");
 
     }
 
@@ -57,10 +57,10 @@ public class AdminController {
                                                @PathVariable String id,
                                                @RequestBody UpdateSpecialistStatusRequest request){
         if (!authService.verifyAsAdmin(authHeader)) {
-            return Result.error("ERROR", "请以管理员身份修改");
+            return Result.error("ERROR", "Please edit as an admin");
         }
         if (request == null || request.getStatus() == null) {
-            return Result.error("ERROR", "status不能为空");
+            return Result.error("ERROR", "status can't be null");
         }
         return Result.success(adminService.updateSpecialistStatus(id, request.getStatus()));
     }
@@ -70,10 +70,10 @@ public class AdminController {
     @DeleteMapping("/specialists/{id}")
     public Result<Void> deleteSpecialist(@RequestHeader("Authorization") String authHeader, @PathVariable String id) {
         if (!authService.verifyAsAdmin(authHeader)) {
-            return Result.error("ERROR", "请以管理员身份修改");
+            return Result.error("ERROR", "Please edit as an admin");
         }
         adminService.deleteSpecialist(id);
-    return Result.success("删除成功");
+    return Result.success("Delete successfully!");
     }
 
     @PostMapping("/specialists/batch-status")
@@ -81,7 +81,7 @@ public class AdminController {
             @RequestHeader("Authorization") String authHeader,
             @RequestBody BatchUpdateSpecialistStatusRequest request) {
         if (!authService.verifyAsAdmin(authHeader)) {
-            return Result.error("ERROR", "请以管理员身份修改");
+            return Result.error("ERROR", "Please edit as an admin");
         }
         return Result.success(adminService.batchUpdateSpecialistStatus(request.getIds(), request.getStatus()));
     }
@@ -89,7 +89,7 @@ public class AdminController {
     @GetMapping("/specialists/export")
     public ResponseEntity<String> exportSpecialists(@RequestHeader("Authorization") String authHeader) {
         if (!authService.verifyAsAdmin(authHeader)) {
-            return ResponseEntity.status(401).body("请以管理员身份修改");
+            return ResponseEntity.status(401).body("Please edit as an admin");
         }
         String csv = adminService.exportSpecialistsCsv();
         return ResponseEntity.ok()
@@ -102,7 +102,7 @@ public class AdminController {
     @PostMapping("/expertise")
     public Result<Expertise> createExpertise(@RequestHeader("Authorization") String authHeader, @RequestBody ExpertiseRequest request){
         if (!authService.verifyAsAdmin(authHeader)) {
-            return Result.error("ERROR", "请以管理员身份修改");
+            return Result.error("ERROR", "Please edit as an admin");
         }
         return Result.success(adminService.createExpertise(request.getName(), request.getDescription()));
     }
@@ -111,7 +111,7 @@ public class AdminController {
     @PatchMapping("/expertise/{id}")
     public Result<Expertise> updateExpertiseInfo(@RequestHeader("Authorization") String authHeader, @PathVariable String id, @RequestBody ExpertiseRequest request){
         if (!authService.verifyAsAdmin(authHeader)) {
-            return Result.error("ERROR", "请以管理员身份修改");
+            return Result.error("ERROR", "Please edit as an admin");
         }
         return Result.success(adminService.updateExpertise(id, request.getName(), request.getDescription()));
     }
@@ -120,10 +120,10 @@ public class AdminController {
     @DeleteMapping("/expertise/{id}")
     public Result<Void> deleteExpertise(@RequestHeader("Authorization") String authHeader, @PathVariable String id){
         if (!authService.verifyAsAdmin(authHeader)) {
-            return Result.error("ERROR", "请以管理员身份修改");
+            return Result.error("ERROR", "Please edit as an admin");
         }
         adminService.deleteExpertise(id);
-        return Result.success("专长删除成功");
+        return Result.success("Delete expertise successfully!");
     }
 
     @GetMapping("/slots")
@@ -134,7 +134,7 @@ public class AdminController {
                                                @RequestParam(required = false) String to,
                                                @RequestParam(required = false) Boolean available) {
         if (!authService.verifyAsAdmin(authHeader)) {
-            return Result.error("ERROR", "please use admin role");
+            return Result.error("ERROR", "Please check as an admin");
         }
         return Result.success(adminService.listSlots(specialistId, date, from, to, available));
     }
@@ -143,7 +143,7 @@ public class AdminController {
     public Result<AdminSlotVo> createSlot(@RequestHeader("Authorization") String authHeader,
                                           @RequestBody SlotRequest request) {
         if (!authService.verifyAsAdmin(authHeader)) {
-            return Result.error("ERROR", "please use admin role");
+            return Result.error("ERROR", "Please edit as an admin");
         }
         return Result.success(adminService.createSlot(request));
     }
@@ -153,7 +153,7 @@ public class AdminController {
                                           @PathVariable String id,
                                           @RequestBody SlotRequest request) {
         if (!authService.verifyAsAdmin(authHeader)) {
-            return Result.error("ERROR", "please use admin role");
+            return Result.error("ERROR", "Please edit as an admin");
         }
         return Result.success(adminService.updateSlot(id, request));
     }
@@ -161,7 +161,7 @@ public class AdminController {
     @DeleteMapping("/slots/{id}")
     public Result<Void> deleteSlot(@RequestHeader("Authorization") String authHeader, @PathVariable String id) {
         if (!authService.verifyAsAdmin(authHeader)) {
-            return Result.error("ERROR", "please use admin role");
+            return Result.error("ERROR", "Please edit as an admin");
         }
         adminService.deleteSlot(id);
         return Result.success("slot deleted successfully");
@@ -172,7 +172,7 @@ public class AdminController {
                                                   @RequestParam(defaultValue = "1") Integer page,
                                                   @RequestParam(defaultValue = "10") Integer pageSize) {
         if (!authService.verifyAsAdmin(authHeader)) {
-            return Result.error("ERROR", "please use admin role");
+            return Result.error("ERROR", "Please check as an admin");
         }
         return Result.success(adminService.listBookings(page, pageSize));
     }
@@ -181,7 +181,7 @@ public class AdminController {
     public Result<SingleBookingVo> getBooking(@RequestHeader("Authorization") String authHeader,
                                               @PathVariable String id) {
         if (!authService.verifyAsAdmin(authHeader)) {
-            return Result.error("ERROR", "please use admin role");
+            return Result.error("ERROR", "Please check as an admin");
         }
         return Result.success(customerBookingService.getSingleBookingInfo(id));
     }

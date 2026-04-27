@@ -21,9 +21,9 @@ public class SecurityConfig {
         http
                 .csrf(csrf -> csrf.disable()) // 禁用 CSRF（开发阶段方便调试接口）
                 .authorizeHttpRequests(auth -> auth
-                        // 1. 放行所有静态资源 (index.html, css, js)
+                        // 1. release static resource (index.html, css, js)
                         .requestMatchers("/", "/index.html", "/static/**", "/*.html").permitAll()
-                        // 2. 放行你的注册和验证码 API 接口
+                        // 2. release API
                         .requestMatchers("/auth/**").permitAll()
                         .requestMatchers("/me/**").permitAll()
                         .requestMatchers("/admin/**").permitAll()
@@ -32,7 +32,7 @@ public class SecurityConfig {
                         .requestMatchers("/specialist/**").permitAll()
                         .requestMatchers("/specialists/**").permitAll()
                         .requestMatchers("/bookings/**").permitAll()
-                        // 3. 其余请求需要认证
+                        // 3. other request verification demand
                         .anyRequest().authenticated()
                 );
         return http.build();

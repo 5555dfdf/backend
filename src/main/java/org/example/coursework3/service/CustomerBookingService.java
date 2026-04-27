@@ -109,25 +109,25 @@ public class CustomerBookingService {
         List<UnpaidPaymentItemResult> items = listUnpaidPayments(userId).getItems();
         for (UnpaidPaymentItemResult result : items){
             if (result.getSlotId().equals(request.getSlotId())){
-                throw new MsgException("您有相同时段未处理的订单");
+                throw new MsgException("You have an untreated order for the same time period.");
             }
         }
         String specialistId = safeTrim(request == null ? null : request.getSpecialistId());
         String slotId = safeTrim(request == null ? null : request.getSlotId());
         if (specialistId.isBlank() || slotId.isBlank()) {
-            throw new MsgException("specialistId和slotId不能为空");
+            throw new MsgException("specialistId and slotId cannot be empty");
         }
         Slot slot = slotRepository.findById(slotId)
-                .orElseThrow(() -> new MsgException("预约时段不存在"));
+                .orElseThrow(() -> new MsgException("The appointment time slot does not exist"));
         if (!specialistId.equals(slot.getSpecialistId())) {
-            throw new MsgException("专家与时段不匹配");
+            throw new MsgException("The specialist does not match the time slot.");
         }
         if (!Boolean.TRUE.equals(slot.getAvailable())) {
-            throw new MsgException("该时段已被占用，请选择其他时段");
+            throw new MsgException("This time slot is occupied, please choose another one.");
         }
         String normalizedIntentId = safeTrim(paymentIntentId);
         if (normalizedIntentId.isBlank()) {
-            throw new MsgException("payment intent id不能为空");
+            throw new MsgException("Payment intent id cannot be empty");
         }
 
         double amount = resolvePaymentAmount(request, slot);
@@ -273,29 +273,29 @@ public class CustomerBookingService {
     public CreateBookingPaymentResult resumeUnpaidPayment(String userId, String paymentIntentId) {
         String normalizedIntentId = safeTrim(paymentIntentId);
         if (normalizedIntentId.isBlank()) {
-            throw new MsgException("payment intent id不能为空");
+            throw new MsgException("PaymentIntent ID cannot be empty");
         }
         PaymentDraft draft = (PaymentDraft) redisTemplate.opsForValue().get(PAYMENT_DRAFT_KEY + normalizedIntentId);
         if (draft == null) {
             redisTemplate.opsForZSet().remove(userUnpaidKey(userId), normalizedIntentId);
-            throw new MsgException("未支付订单不存在或已过期");
+            throw new MsgException("The unpaid order does not exist or has expired.");
         }
         if (!userId.equals(draft.getCustomerId())) {
-            throw new MsgException("无权限操作该支付单");
+            throw new MsgException("No permission to operate this payment order.");
         }
         if (draft.isPaid()) {
             redisTemplate.opsForZSet().remove(userUnpaidKey(userId), normalizedIntentId);
-            throw new MsgException("该支付单已完成支付");
+            throw new MsgException("This payment order has been paid.");
         }
         Slot slot = slotRepository.findById(draft.getSlotId())
-                .orElseThrow(() -> new MsgException("预约时段不存在"));
+                .orElseThrow(() -> new MsgException("The appointment time slot does not exist"));
         if (!Boolean.TRUE.equals(slot.getAvailable())) {
             cleanupIntent(draft.getCustomerId(), normalizedIntentId, draft.getPaymentId());
-            throw new MsgException("该时段已被占用，请重新选择");
+            throw new MsgException("This time slot is occupied, please select another one.");
         }
         if (!safeTrim(slot.getSpecialistId()).equals(safeTrim(draft.getSpecialistId()))) {
             cleanupIntent(draft.getCustomerId(), normalizedIntentId, draft.getPaymentId());
-            throw new MsgException("专家与时段不匹配");
+            throw new MsgException("The specialist does not match the time slot.");
         }
 
         String newPaymentToken = buildPaymentToken(normalizedIntentId);
@@ -322,19 +322,19 @@ public class CustomerBookingService {
     public void cancelUnpaidPayment(String userId, String paymentIntentId) {
         String normalizedIntentId = safeTrim(paymentIntentId);
         if (normalizedIntentId.isBlank()) {
-            throw new MsgException("payment intent id不能为空");
+            throw new MsgException("PaymentIntent ID must not be empty");
         }
         PaymentDraft draft = (PaymentDraft) redisTemplate.opsForValue().get(PAYMENT_DRAFT_KEY + normalizedIntentId);
         if (draft == null) {
             redisTemplate.opsForZSet().remove(userUnpaidKey(userId), normalizedIntentId);
-            throw new MsgException("未支付订单不存在或已过期");
+            throw new MsgException("Unpaid order does not exist or has expired");
         }
         if (!userId.equals(draft.getCustomerId())) {
-            throw new MsgException("无权限操作该支付单");
+            throw new MsgException("No authority to operate this payment order.");
         }
         if (draft.isPaid()) {
             redisTemplate.opsForZSet().remove(userUnpaidKey(userId), normalizedIntentId);
-            throw new MsgException("该支付单已支付，无法取消");
+            throw new MsgException("This payment order has been paid and cannot be cancelled.");
         }
         cleanupIntent(userId, normalizedIntentId, draft.getPaymentId());
     }
@@ -349,7 +349,7 @@ public class CustomerBookingService {
             try {
                 bookingStatus = BookingStatus.valueOf(status);
             } catch (IllegalArgumentException e) {
-                throw new MsgException("无效的状态值：" + status);
+                throw new MsgException("Invalid status：" + status);
             }
         }
 
@@ -402,7 +402,7 @@ public class CustomerBookingService {
             LocalDate date = LocalDate.parse(value);
             return isFrom ? date.atStartOfDay() : date.atTime(23, 59, 59);
         } catch (DateTimeParseException e) {
-            throw new MsgException("日期格式错误：" + value);
+            throw new MsgException("Incorrect date format：" + value);
         }
     }
 
@@ -475,7 +475,7 @@ public class CustomerBookingService {
         }
         if (!userId.equals(draft.getCustomerId())) {
             if (silent) return null;
-            throw new MsgException("无权限查看该支付单");
+            throw new MsgException("No permission to view this payment order.");
         }
         if (draft.isPaid()) {
             redisTemplate.opsForZSet().remove(userUnpaidKey(userId), intentId);
@@ -528,7 +528,7 @@ public class CustomerBookingService {
         Booking booking = bookingRepository.getBookingById(id);
         // verify: only bookings in 'Confirmed' or 'Pending' are eligible for cancellation
         if (booking.getStatus() != BookingStatus.Confirmed && booking.getStatus() != BookingStatus.Pending) {
-            throw new MsgException("当前预约状态无法执行取消操作");
+            throw new MsgException("The current appointment status cannot be cancelled.");
         }
         // update booking status to 'cancelled'
         booking.setStatus(BookingStatus.Cancelled);
@@ -544,20 +544,20 @@ public class CustomerBookingService {
     public void rescheduleBooking(String bookingId, String newSlotId) {
         // get booking details
         Booking booking = bookingRepository.findById(bookingId)
-                .orElseThrow(() -> new MsgException("预约不存在"));
+                .orElseThrow(() -> new MsgException("The appointment does not exist"));
         // check if the current booking status allows rescheduling
         if (booking.getStatus() == BookingStatus.Cancelled || booking.getStatus() == BookingStatus.Completed) {
-            throw new MsgException("该预约无法改期");
+            throw new MsgException("This appointment cannot be rescheduled.");
         }
         // validate new slot existence and availability
         Slot newSlot = slotRepository.findById(newSlotId)
-                .orElseThrow(() -> new MsgException("新时段不存在"));
+                .orElseThrow(() -> new MsgException("The new time slot does not exist"));
         if (!newSlot.getAvailable()) {
-            throw new MsgException("新时段不可用");
+            throw new MsgException("The new time slot is unavailable.");
         }
         // ensure the new slot belongs to the same specialist
         if (!newSlot.getSpecialistId().equals(booking.getSpecialistId())) {
-            throw new MsgException("新时段与原专家不匹配");
+            throw new MsgException("The new time slot does not match the original specialist.");
         }
         // record the rescheduling action in the history database
         BookingHistory history = new BookingHistory();

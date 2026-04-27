@@ -36,8 +36,8 @@ public class AliyunMailService {
     public void sendCaptcha(String toAddress) throws Exception {
         String code = String.valueOf((int)((Math.random() * 9 + 1) * 100000));
         redisTemplate.opsForValue().set("captcha:" + toAddress, code, 5, TimeUnit.MINUTES);
-        String subject = "您的注册验证码";
-        String bodyHtml = "<p>您的验证码是：" + code + "，有效期 5 分钟。</p>";
+        String subject = "Your registration verification code";
+        String bodyHtml = "<p>Your verification code is：" + code + ". Valid for 5 minutes。</p>";
         SingleSendMailRequest request = new SingleSendMailRequest()
                 .setAccountName(fromAddress)
                 .setAddressType(1)
@@ -49,29 +49,6 @@ public class AliyunMailService {
         client.singleSendMail(request);
     }
 
-//    @Async
-//    public void sendBookingStatusNotification(String name, String toAddress, String status, String note) throws Exception {
-//        String subject = "Your Booking Status";
-//        String content = status.equalsIgnoreCase("Confirmed") ? "Confirmed" : "Rejected";
-//        String bodyHtml = "<h3>Booking Handling Info</h3>" +
-//                "<p>Your Booking Status：<strong>" + content + "</strong></p>";
-//
-//        if (note != null && !note.isEmpty()) {
-//            bodyHtml += "<p>Note：" + note + "</p>";
-//        }
-//
-//        bodyHtml += "<p>Your booking status has been updated by: <strong>" + name +"</strong>. Please log in to the system to view details.</p>";
-//
-//        SingleSendMailRequest request = new SingleSendMailRequest()
-//                .setAccountName(fromAddress)
-//                .setAddressType(1)
-//                .setReplyToAddress(true)
-//                .setToAddress(toAddress)
-//                .setSubject(subject)
-//                .setHtmlBody(bodyHtml);
-//
-//        client.singleSendMail(request);
-//    }
     // send emails to specialists when the slot is cancelled to notify that the slot is now available
     @Async
     public void sendCancellationNoticeToSpecialist(String toAddress, String slotInfo) throws Exception {

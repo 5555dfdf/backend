@@ -42,7 +42,7 @@ public class AdminService {
     @Transactional
     public Specialist createSpecialist(CreateSpecialistRequest request) {
         if (userRepository.findByEmail(request.getUserEmail()).isPresent()) {
-            throw new MsgException("该邮箱已被注册");
+            throw new MsgException("This email is already registered.");
         }
 
         // 1. 保存用户
@@ -58,11 +58,11 @@ public class AdminService {
         List<Expertise> expertiseList = new ArrayList<>();
         for (String expertiseId : request.getExpertiseIds()) {
             Expertise expertise = expertiseRepository.findById(expertiseId)
-                    .orElseThrow(() -> new MsgException("专长不存在"));
+                    .orElseThrow(() -> new MsgException("Expertise does not exist."));
             expertiseList.add(expertise);
         }
         specialist.setExpertises(expertiseList);
-        specialistsRepository.save(specialist); // JPA 自动维护中间表specialist_expertise
+        specialistsRepository.save(specialist);
         return specialist;
     }
 
@@ -71,7 +71,7 @@ public class AdminService {
         try {
             specialist = specialistsRepository.getByUserId(id);
         } catch (Exception e) {
-            throw new MsgException("该专家不存在");
+            throw new MsgException("This specialist does not exist");
         }
         if (request.getName() != null) {
             User user = userRepository.findById(id);
@@ -92,7 +92,7 @@ public class AdminService {
             List<Expertise> expertiseList = new ArrayList<>();
             for (String expertiseId : request.getExpertiseIds()) {
                 Expertise expertise = expertiseRepository.findById(expertiseId)
-                        .orElseThrow(() -> new MsgException("专长不存在"));
+                        .orElseThrow(() -> new MsgException("Expertise does not exist."));
                 expertiseList.add(expertise);
             }
             specialist.setExpertises(expertiseList);
@@ -107,7 +107,7 @@ public class AdminService {
         try {
             specialist = specialistsRepository.getByUserId(id);
         } catch (Exception e) {
-            throw new MsgException("该专家不存在");
+            throw new MsgException("This specialist does not exist");
         }
         specialist.setStatus(status);
         deleteTokenByUserId(id);
@@ -141,10 +141,10 @@ public class AdminService {
     @Transactional
     public BatchUpdateSpecialistStatusResultVo batchUpdateSpecialistStatus(List<String> ids, SpecialistStatus status) {
         if (ids == null || ids.isEmpty()) {
-            throw new MsgException("ids不能为空");
+            throw new MsgException("ids can't be null");
         }
         if (status == null) {
-            throw new MsgException("status不能为空");
+            throw new MsgException("status can't be null");
         }
 
         Set<String> seen = new HashSet<>();
@@ -152,7 +152,7 @@ public class AdminService {
         List<BatchUpdateSpecialistStatusResultVo.BatchFailureVo> failures = new ArrayList<>();
         for (String id : ids) {
             if (id == null || id.isBlank()) {
-                failures.add(new BatchUpdateSpecialistStatusResultVo.BatchFailureVo(id, "id不能为空"));
+                failures.add(new BatchUpdateSpecialistStatusResultVo.BatchFailureVo(id, "id can't be null"));
                 continue;
             }
             String trimmedId = id.trim();
@@ -214,7 +214,7 @@ public class AdminService {
 
     public Expertise createExpertise(String name, String description) {
         if (expertiseRepository.existsByName(name)) {
-            throw new MsgException("该专家长已存在");
+            throw new MsgException("This expertise has already existed!");
         }
         Expertise expertise = new Expertise();
         expertise.setName(name);
@@ -229,7 +229,7 @@ public class AdminService {
         try {
             expertise = expertiseRepository.getExpertiseById(id);
         } catch (Exception e) {
-            throw new MsgException("该专长不存在");
+            throw new MsgException("This expertise does not exist!");
         }
         expertise.setName(name);
         expertise.setDescription(description);
@@ -239,7 +239,7 @@ public class AdminService {
 
     public void deleteExpertise(String id) {
         if (!expertiseRepository.existsById(id)) {
-            throw new MsgException("请输入有效专长ID");
+            throw new MsgException("Please enter correct expertise ID");
         }
         expertiseRepository.deleteById(id);
     }
@@ -292,7 +292,7 @@ public class AdminService {
 
     public AdminSlotVo createSlot(SlotRequest request) {
         if (request == null) {
-            throw new MsgException("请求体不能为空");
+            throw new MsgException("Payload can't be null");
         }
         String specialistId = request.getSpecialistId();
         String date = request.getDate();
@@ -300,23 +300,23 @@ public class AdminService {
         String to = request.getEnd();
         Boolean available = request.getAvailable();
         if (specialistId == null || specialistId.isBlank()) {
-            throw new MsgException("specialistId不能为空");
+            throw new MsgException("specialistId can't be null");
         }
         if (date == null || date.isBlank() || from == null || from.isBlank() || to == null || to.isBlank()) {
-            throw new MsgException("date/start/end不能为空");
+            throw new MsgException("date/start/end can't be null");
         }
 
         List<Slot> slots = slotRepository.findBySpecialistId(specialistId.trim());
         LocalDateTime startNew = parseDateAndTime(date.trim(), from.trim());
         LocalDateTime endNew = parseDateAndTime(date.trim(), to.trim());
         if (!startNew.isBefore(endNew)) {
-            throw new MsgException("开始时间必须早于结束时间");
+            throw new MsgException("The start time must be earlier than the end time.");
         }
 
         for (Slot old : slots) {
             if (old == null) continue;
             if (isTimeOverlap(startNew, endNew, old.getStartTime(), old.getEndTime())) {
-                throw new MsgException("时段冲突！");
+                throw new MsgException("Time slot conflict!");
             }
         }
 
@@ -337,27 +337,27 @@ public class AdminService {
     public AdminSlotVo updateSlot(String id, SlotRequest request) {
         Slot slot = slotRepository.getSlotById(id);
         if (slot == null) {
-            throw new MsgException("时段无效，无法编辑");
+            throw new MsgException("Invalid time slot, unable to edit.");
         }
         if (request == null) {
-            throw new MsgException("请求体不能为空");
+            throw new MsgException("Request body cannot be empty");
         }
 
         String date = request.getDate();
         String startStr = request.getStart();
         String endStr = request.getEnd();
         if (date == null || date.isBlank() || startStr == null || startStr.isBlank() || endStr == null || endStr.isBlank()) {
-            throw new MsgException("date/start/end不能为空");
+            throw new MsgException("date/start/end cannot be empty");
         }
 
         LocalDateTime startNew = parseDateAndTime(date.trim(), startStr.trim());
         LocalDateTime endNew = parseDateAndTime(date.trim(), endStr.trim());
         LocalDateTime now = LocalDateTime.now();
         if (startNew.isBefore(now)){
-            throw new MsgException("开始时间不得晚于当前时间");
+            throw new MsgException("The start time cannot be later than the current time.");
         }
         if (!startNew.isBefore(endNew)) {
-            throw new MsgException("开始时间必须早于结束时间");
+            throw new MsgException("The start time must be earlier than the end time.");
         }
 
 
@@ -366,7 +366,7 @@ public class AdminService {
             if (old == null) continue;
             if (old.getId() != null && old.getId().equals(slot.getId())) continue;
             if (isTimeOverlap(startNew, endNew, old.getStartTime(), old.getEndTime())) {
-                throw new MsgException("时段冲突！");
+                throw new MsgException("Time slot conflict!");
             }
         }
 
@@ -376,7 +376,7 @@ public class AdminService {
         if (free&&request.getAvailable() != null) {
             slot.setAvailable(request.getAvailable());
         }else {
-            throw new MsgException("该时段已有预约无法修改状态");
+            throw new MsgException("This time slot has existing reservations; status cannot be modified.");
         }
         if (request.getAmount() != null) {
             slot.setAmount(normalizeAmount(request.getAmount()));
@@ -410,10 +410,10 @@ public class AdminService {
 
     public void deleteSlot(String id) {
         if (id == null || id.isBlank()) {
-            throw new MsgException("slotId不能为空");
+            throw new MsgException("slotId cannot be empty");
         }
         if (!slotRepository.existsById(id)) {
-            throw new MsgException("时段不存在");
+            throw new MsgException("Time slot does not exist");
         }
         slotRepository.deleteById(id);
     }
@@ -423,7 +423,7 @@ public class AdminService {
         try {
             return LocalDate.parse(v.trim(), DateTimeFormatter.ISO_LOCAL_DATE);
         } catch (DateTimeParseException e) {
-            throw new MsgException("日期格式错误：" + v);
+            throw new MsgException("Date format error：" + v);
         }
     }
 
@@ -438,7 +438,7 @@ public class AdminService {
             return LocalDateTime.parse(t).toLocalTime();
         } catch (DateTimeParseException ignored) {
         }
-        throw new MsgException("时间格式错误：" + v);
+        throw new MsgException("Date format error：" + v);
     }
 
     private LocalDateTime parseDateAndTime(String date, String time) {
@@ -463,7 +463,7 @@ public class AdminService {
             return BigDecimal.ZERO;
         }
         if (amount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new MsgException("amount不能小于0");
+            throw new MsgException("Amount cannot be less than 0");
         }
         return amount.setScale(2, java.math.RoundingMode.HALF_UP);
     }
@@ -474,17 +474,17 @@ public class AdminService {
             value = "CNY";
         }
         if (value.length() > 10) {
-            throw new MsgException("currency长度不能超过10");
+            throw new MsgException("The length of currency cannot exceed 10");
         }
         return value;
     }
 
     private Integer validateDuration(Integer duration) {
         if (duration == null) {
-            throw new MsgException("duration不能为空");
+            throw new MsgException("Duration cannot be empty");
         }
         if (duration <= 0) {
-            throw new MsgException("duration必须大于0");
+            throw new MsgException("Duration must be greater than 0");
         }
         return duration;
     }
@@ -495,7 +495,7 @@ public class AdminService {
             value = "online";
         }
         if (value.length() > 20) {
-            throw new MsgException("type长度不能超过20");
+            throw new MsgException("The length of type cannot exceed 20");
         }
         return value;
     }

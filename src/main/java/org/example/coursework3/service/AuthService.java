@@ -83,7 +83,7 @@ public class AuthService {
         String userId = redisTemplate.opsForValue().get(key);
 
         if (userId == null) {
-            throw new MsgException("token无效或已过期");
+            throw new MsgException("Token is invalid or expired");
         }
 
         return userId;
@@ -96,17 +96,17 @@ public class AuthService {
 
     public User login(String email, String password) {
         User user = userRepository.findByEmail(email)
-                .orElseThrow(() -> new MsgException("用户不存在"));
+                .orElseThrow(() -> new MsgException("User does not exist"));
 
         String passwordHash = user.getPasswordHash();
 
         if (!passwordHash.equals(password)) {
-            throw new MsgException("密码不正确");
+            throw new MsgException("Incorrect password");
         }
         if (Role.Specialist == user.getRole()){
             Specialist specialist = specialistsRepository.getByUserId(user.getId());
             if (specialist.getStatus()== SpecialistStatus.Inactive){
-                throw new MsgException("当前专家账号被禁用");
+                throw new MsgException("The current expert account is disabled.");
             }
         }
         return user;
@@ -115,10 +115,10 @@ public class AuthService {
     public User loginByCode(String email, String code){
         String cachedCode = redisTemplate.opsForValue().get("captcha:" + email);
         if (cachedCode == null || !cachedCode.equals(code)) {
-            throw new MsgException("验证码错误或已过期");
+            throw new MsgException("Verification code is incorrect or expired");
         }
         return userRepository.findByEmail(email)
-                .orElseThrow(() -> new MsgException("该邮箱未注册账号"));
+                .orElseThrow(() -> new MsgException("This email is not registered."));
     }
 
     public User register(String name,String email, String code, String password) {
@@ -126,12 +126,12 @@ public class AuthService {
         try {
             String cachedCode = redisTemplate.opsForValue().get("captcha:" + email);
             if (cachedCode == null || !cachedCode.equals(code)) {
-                throw new MsgException("验证码错误或已过期");
+                throw new MsgException("Verification code is incorrect or expired");
             }
 
             // 检查用户是否已存在
             if (userRepository.findByEmail(email).isPresent()) {
-                throw new MsgException("该邮箱已被注册");
+                throw new MsgException("This email is already registered.");
             }
 
             // 创建新用户

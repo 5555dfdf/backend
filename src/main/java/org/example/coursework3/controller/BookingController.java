@@ -35,7 +35,7 @@ public class BookingController {
     @PostMapping
     public Result<CreateBookingResult> createBooking(@RequestHeader("Authorization") String authHeader, @RequestBody CreateBookingRequest request){
         if (!authService.verifyAsCustomer(authHeader)) {
-            return Result.error("ERROR", "请以顾客身份修改");
+            return Result.error("ERROR", "Please operate as a customer");
         }
         return Result.success(bookingService.creatBooking(authService.getUserIdByAuth(authHeader), request));
     }
@@ -48,7 +48,7 @@ public class BookingController {
                                                    @RequestParam(required = false) String from,
                                                    @RequestParam(required = false) String to){
         if (!authService.verifyAsCustomer(authHeader)) {
-            return Result.error("ERROR", "请以顾客身份查看");
+            return Result.error("ERROR", "Please operate as a customer");
         }
         String userId = authService.getUserIdByAuth(authHeader);
         BookingPageResult pageResult = bookingService.getMyBookings(userId, status, page, pageSize, from, to);
@@ -58,7 +58,7 @@ public class BookingController {
     @GetMapping("/{id}")
     public Result<SingleBookingVo> getSingleBookingInfo(@RequestHeader("Authorization") String authHeader, @PathVariable String id){
         if (!authService.verifyAsCustomer(authHeader)) {
-            return Result.error("ERROR", "请以顾客身份查看");
+            return Result.error("ERROR", "Please operate as a customer");
         }
         return Result.success(bookingService.getSingleBookingInfo(id));
     }
@@ -66,7 +66,7 @@ public class BookingController {
     @PostMapping("/{id}/cancel")
     public Result<BookingActionResult> cancelBooking(@RequestHeader("Authorization") String authHeader, @PathVariable String id){
         if (!authService.verifyAsCustomer(authHeader)) {
-            return Result.error("ERROR", "请以顾客身份查看");
+            return Result.error("ERROR", "Please operate as a customer");
         }
         return Result.success(bookingService.cancelBooking(id));
     }
@@ -75,7 +75,7 @@ public class BookingController {
     public Result<RescheduleBookingResult> rescheduleBooking(@RequestHeader("Authorization") String authHeader, @PathVariable String id,
                                                              @RequestBody RescheduleBookingRequest request){
         if (!authService.verifyAsCustomer(authHeader)) {
-            return Result.error("ERROR", "请以顾客身份查看");
+            return Result.error("ERROR", "Please operate as a customer");
         }
         bookingService.rescheduleBooking(id, request.getSlotId());
         return Result.success(new RescheduleBookingResult(id, BookingStatus.Pending, request.getSlotId()));
@@ -86,7 +86,7 @@ public class BookingController {
                                                                    @PathVariable String id,
                                                                    @RequestBody(required = false) CreateBookingPaymentRequest request) {
         if (!authService.verifyAsCustomer(authHeader)) {
-            return Result.error("ERROR", "请以顾客身份支付");
+            return Result.error("ERROR", "Please operate as a customer");
         }
         String userId = authService.getUserIdByAuth(authHeader);
         return Result.success(bookingService.createBookingPayment(userId, id, request));
@@ -97,7 +97,7 @@ public class BookingController {
                                                                      @PathVariable String id,
                                                                      @RequestBody(required = false) ConfirmBookingPaymentRequest request) {
         if (!authService.verifyAsCustomer(authHeader)) {
-            return Result.error("ERROR", "请以顾客身份支付");
+            return Result.error("ERROR", "Please operate as a customer");
         }
         String userId = authService.getUserIdByAuth(authHeader);
         return Result.success(bookingService.confirmBookingPayment(userId, id, request));
@@ -107,7 +107,7 @@ public class BookingController {
     public Result<ConfirmBookingPaymentResult> mockSuccessPayment(@RequestHeader("Authorization") String authHeader,
                                                                   @PathVariable String id) {
         if (!authService.verifyAsCustomer(authHeader)) {
-            return Result.error("ERROR", "请以顾客身份支付");
+            return Result.error("ERROR", "Please operate as a customer");
         }
         String userId = authService.getUserIdByAuth(authHeader);
         return Result.success(bookingService.mockSuccessPayment(userId, id));
@@ -122,7 +122,7 @@ public class BookingController {
     @GetMapping("/unpaid-payments")
     public Result<UnpaidPaymentsResult> listUnpaidPayments(@RequestHeader("Authorization") String authHeader) {
         if (!authService.verifyAsCustomer(authHeader)) {
-            return Result.error("ERROR", "请以顾客身份查看");
+            return Result.error("ERROR", "Please operate as a customer");
         }
         String userId = authService.getUserIdByAuth(authHeader);
         return Result.success(bookingService.listUnpaidPayments(userId));
@@ -132,7 +132,7 @@ public class BookingController {
     public Result<UnpaidPaymentItemResult> getUnpaidPayment(@RequestHeader("Authorization") String authHeader,
                                                             @PathVariable String id) {
         if (!authService.verifyAsCustomer(authHeader)) {
-            return Result.error("ERROR", "请以顾客身份查看");
+            return Result.error("ERROR", "Please operate as a customer");
         }
         String userId = authService.getUserIdByAuth(authHeader);
         return Result.success(bookingService.getUnpaidPayment(userId, id));
@@ -142,7 +142,7 @@ public class BookingController {
     public Result<CreateBookingPaymentResult> resumeUnpaidPayment(@RequestHeader("Authorization") String authHeader,
                                                                   @PathVariable String id) {
         if (!authService.verifyAsCustomer(authHeader)) {
-            return Result.error("ERROR", "请以顾客身份支付");
+            return Result.error("ERROR", "Please operate as a customer");
         }
         String userId = authService.getUserIdByAuth(authHeader);
         return Result.success(bookingService.resumeUnpaidPayment(userId, id));
@@ -152,10 +152,10 @@ public class BookingController {
     public Result<Void> cancelUnpaidPayment(@RequestHeader("Authorization") String authHeader,
                                             @PathVariable String id) {
         if (!authService.verifyAsCustomer(authHeader)) {
-            return Result.error("ERROR", "请以顾客身份支付");
+            return Result.error("ERROR", "Please operate as a customer");
         }
         String userId = authService.getUserIdByAuth(authHeader);
         bookingService.cancelUnpaidPayment(userId, id);
-        return Result.success("支付单已取消");
+        return Result.success("Order has been cancelled");
     }
 }

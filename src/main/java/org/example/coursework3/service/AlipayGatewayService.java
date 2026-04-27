@@ -35,7 +35,7 @@ public class AlipayGatewayService {
 
     private AlipayClient newClient() {
         if (isBlank(appId) || isBlank(privateKey) || isBlank(publicKey)) {
-            throw new MsgException("支付宝配置不完整，请设置 alipay.app-id/private-key/public-key");
+            throw new MsgException("Incomplete Alipay configuration. Please set alipay.app-id/private-key/public-key.");
         }
         return new DefaultAlipayClient(gatewayUrl, appId, privateKey, "json", "UTF-8", publicKey, "RSA2");
     }
@@ -55,11 +55,11 @@ public class AlipayGatewayService {
             }
             AlipayTradePrecreateResponse response = client.execute(request);
             if (!response.isSuccess() || isBlank(response.getQrCode())) {
-                throw new MsgException("支付宝预下单失败: " + safe(response.getSubMsg(), response.getMsg()));
+                throw new MsgException("Alipay pre-order failed: " + safe(response.getSubMsg(), response.getMsg()));
             }
             return response.getQrCode();
         } catch (AlipayApiException e) {
-            throw new MsgException("支付宝预下单异常: " + e.getErrMsg());
+            throw new MsgException("Alipay pre-order exception: " + e.getErrMsg());
         }
     }
 
@@ -72,11 +72,11 @@ public class AlipayGatewayService {
             request.setBizModel(model);
             AlipayTradeQueryResponse response = client.execute(request);
             if (!response.isSuccess()) {
-                throw new MsgException("支付宝查询失败: " + safe(response.getSubMsg(), response.getMsg()));
+                throw new MsgException("Alipay query failed: " + safe(response.getSubMsg(), response.getMsg()));
             }
             return response.getTradeStatus();
         } catch (AlipayApiException e) {
-            throw new MsgException("支付宝查询异常: " + e.getErrMsg());
+            throw new MsgException("Alipay query exception: " + e.getErrMsg());
         }
     }
 

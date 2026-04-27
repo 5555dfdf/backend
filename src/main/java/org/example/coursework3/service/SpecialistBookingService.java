@@ -17,7 +17,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -34,8 +33,6 @@ public class SpecialistBookingService {
     private BookingHistoryRepository bookingHistoryRepository;
     @Autowired
     private AliyunMailService aliyunMailService;
-    @Autowired
-    private SpecialistsRepository specialistsRepository;
 
     public BookingPageResult getSpecialistBookings(String authHeader, String status, Integer page, Integer pageSize) {
         // extract and verify specialist identity
@@ -43,7 +40,7 @@ public class SpecialistBookingService {
         String specialistId = authService.getUserIdByToken(token);
         User specialist = userRepository.findById(specialistId);
         if (specialist.getRole() != Role.Specialist){
-            throw new MsgException("您不是专家，无权访问");
+            throw new MsgException("You are not an expert and have no access permission.");
         }
         // parse status string to Enum
         Page<Booking> bookingPage;
@@ -54,7 +51,7 @@ public class SpecialistBookingService {
                 try {
                     status1 = BookingStatus.valueOf(status);
                 } catch (IllegalArgumentException e) {
-                    throw new MsgException("无效的状态值：" + status);
+                    throw new MsgException("Invalid status：" + status);
                 }
             }
             // create page request sorted by creation time descending
@@ -70,7 +67,7 @@ public class SpecialistBookingService {
             } catch (Exception e) {
                 throw new MsgException("没搜到数据");
             }
-            // transform Entity list to VO list with additional user/slot info
+            // transform an Entity list to a VO list with additional user/slot info
             voList = bookingPage.getContent().stream()
                     .map(booking ->{
                         User customer = userRepository.findById(booking.getCustomerId());
@@ -92,7 +89,7 @@ public class SpecialistBookingService {
         Booking booking = bookingRepository.findById(bookingId)
                 .orElseThrow(()-> new MsgException("No such reservation"));
         Slot slot = slotRepository.findById(booking.getSlotId()).orElseThrow(() -> new MsgException("No such slot"));
-        // verify if u are a specialist and if the booking status is pending
+        // verify if you're a specialist and if the booking status is pending
         if (!booking.getSpecialistId().equals(specialistId)) {
             throw new MsgException("Without right to handle this reservation");
         }
@@ -102,16 +99,6 @@ public class SpecialistBookingService {
         // update status
         booking.setStatus(BookingStatus.Confirmed);
         bookingRepository.save(booking);
-        //发送邮件逻辑
-//        try {
-//            User customer = userRepository.findById(booking.getCustomerId());
-//            Specialist specialist = specialistsRepository.getByUserId(booking.getSpecialistId());
-//            if (customer != null && customer.getEmail() != null) {
-//                aliyunMailService.sendBookingStatusNotification(specialist.getName(), customer.getEmail(), "Confirmed", null);
-//            }
-//        } catch (Exception e) {
-//            log.warn("Failed to send confirmation email notification: {}", e.getMessage());
-//        }
         // lock the slot
         slot.setAvailable(Boolean.FALSE);
         slotRepository.save(slot);
@@ -141,16 +128,6 @@ public class SpecialistBookingService {
         Slot slot = slotRepository.getById(booking.getSlotId());
         slot.setAvailable(true);
         slotRepository.save(slot);
-//        //发送邮件
-//        try {
-//            User customer = userRepository.findById(booking.getCustomerId());
-//            Specialist specialist = specialistsRepository.getByUserId(booking.getSpecialistId());
-//            if (customer != null && customer.getEmail() != null) {
-//                aliyunMailService.sendBookingStatusNotification(specialist.getName(), customer.getEmail(), "Rejected", reason);
-//            }
-//        } catch (Exception e) {
-//            log.warn("Failed to send rejection email notification: {}", e.getMessage());
-//        }
         return new BookingActionResult(bookingId, BookingStatus.Rejected);
     }
     // complete booking - transfer 'Confirmed' into 'Completed'
@@ -206,7 +183,7 @@ public class SpecialistBookingService {
                                     booking.getStatus()
                             );
             history.setChangedAt(LocalDateTime.now());
-            log.info("该状态记录已存在，更新操作时间：{}", booking.getId());
+            log.info("This status record already exists, update operation time: {}", booking.getId());
             return;
         }
 
@@ -247,7 +224,7 @@ public class SpecialistBookingService {
 
             }
         } catch (Exception e) {
-            log.error("邮件通知发送失败: {}", e.getMessage());
+            log.error("Email notification sending failed: {}", e.getMessage());
         }
     }
 

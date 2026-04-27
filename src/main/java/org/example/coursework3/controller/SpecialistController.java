@@ -64,7 +64,7 @@ public class SpecialistController {
     @GetMapping("bookings/{id}")
     public Result<SingleBookingVo> getSingleBookingInfo(@RequestHeader("Authorization") String authHeader, @PathVariable String id){
         if (!authService.verifyAsSpecialist(authHeader)) {
-            return Result.error("ERROR", "请以专家身份查看");
+            return Result.error("ERROR", "please use Specialist role");
         }
         return Result.success(bookingService.getSingleBookingInfo(id));
     }
