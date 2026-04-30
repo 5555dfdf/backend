@@ -15,6 +15,9 @@ const editOpen = ref(false)
 const editLoading = ref(false)
 const editSaving = ref(false)
 const editingSlotId = ref('')
+const pricingRules = ref([])
+const pricingRulesLoading = ref(false)
+const pricingRulesError = ref('')
 const DETAIL_MAX = 300
 
 const editForm = ref({
@@ -37,6 +40,9 @@ const formattedSlots = computed(() => {
     formattedType: formatType(slot.type)
   }))
 })
+
+const pricingRulesPreview = computed(() => pricingRules.value.slice(0, 4))
+const extraPricingRulesCount = computed(() => Math.max(0, pricingRules.value.length - pricingRulesPreview.value.length))
 
 function formatDate(dateStr) {
   if (!dateStr) return '--'
@@ -112,6 +118,20 @@ async function loadSlots() {
     showAlertModal({ type: 'error', message: error.value })
   } finally {
     loading.value = false
+  }
+}
+
+async function loadPricingRules() {
+  pricingRulesLoading.value = true
+  pricingRulesError.value = ''
+  try {
+    const rows = await api.specialistListPricingRules()
+    pricingRules.value = Array.isArray(rows) ? rows : []
+  } catch (e) {
+    pricingRules.value = []
+    pricingRulesError.value = e?.message || 'Failed to load your pricing rules.'
+  } finally {
+    pricingRulesLoading.value = false
   }
 }
 
@@ -198,7 +218,9 @@ function goToCreate() {
   router.push({ name: 'specialist.slotCreate' })
 }
 
-onMounted(loadSlots)
+onMounted(async () => {
+  await Promise.all([loadSlots(), loadPricingRules()])
+})
 </script>
 
 <template>
@@ -384,8 +406,23 @@ onMounted(loadSlots)
             <div class="tip-wrap">
               <span class="icon">!</span>
               <div class="tooltip">
-                Please follow your recommended Price!<br>
-                Otherwise you will be punished!
+                <template v-if="pricingRulesLoading">
+                  Loading your pricing rules...
+                </template>
+                <template v-else-if="pricingRules.length">
+                  <div class="tooltip-title"> Please follow your recommended Price!<br>
+                    Otherwise you will be punished!
+                  </div>
+                  <div v-for="rule in pricingRulesPreview" :key="rule.id" class="tooltip-rule">
+                    {{ rule.duration }} min {{ rule.type }}: {{ formatCurrency(rule.amount, rule.currency) }}
+                  </div>
+                  <div v-if="extraPricingRulesCount" class="tooltip-more">
+                    +{{ extraPricingRulesCount }} more rules
+                  </div>
+                </template>
+                <template v-else>
+                  {{ pricingRulesError || 'No pricing rules found.' }}
+                </template>
               </div>
             </div>
             <button type="button" class="action-btn modal-cancel" :disabled="editSaving" @click="closeEditModal">Cancel</button>
@@ -430,7 +467,7 @@ onMounted(loadSlots)
   bottom: 130%; /* 在上方 */
   left: 50%;
   transform: translateX(-50%);
-  width: 240px;
+  width: 280px;
 
   background: #111827;
   color: #fff;
@@ -446,6 +483,20 @@ onMounted(loadSlots)
 }
 
 /* hover 显示 */
+.tooltip-title {
+  margin-bottom: 6px;
+  font-weight: 700;
+}
+
+.tooltip-rule,
+.tooltip-more {
+  color: #e5e7eb;
+}
+
+.tooltip-more {
+  margin-top: 4px;
+}
+
 .tip-wrap:hover .tooltip {
   opacity: 1;
 }
